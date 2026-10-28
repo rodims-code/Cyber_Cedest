@@ -48,27 +48,34 @@ export function ImagePlaceholder({
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-primary/30 bg-muted/40 p-4 transition-all duration-300 hover:border-primary/70 hover:bg-muted/70 hover:shadow-md",
+        "group relative flex flex-col justify-between overflow-hidden rounded-xl transition-all duration-300 hover:shadow-md",
+        hasValidImage
+          ? "border border-border/70 bg-card shadow-xs"
+          : "border-2 border-dashed border-primary/30 bg-muted/40 p-4 hover:border-primary/70 hover:bg-muted/70",
         aspectClasses[aspectRatio],
         className
       )}
     >
       {hasValidImage ? (
-        <img
-          src={imageSrc}
-          alt={title}
-          onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        <>
+          <img
+            src={imageSrc}
+            alt={title}
+            onError={() => setImageError(true)}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {/* Badge discret sur l'image */}
+          <div className="absolute bottom-2.5 left-2.5 z-10">
+            <span className="rounded-md bg-black/70 backdrop-blur-xs px-2 py-0.5 text-[11px] font-medium text-white shadow-xs">
+              {title}
+            </span>
+          </div>
+        </>
       ) : null}
 
-      {/* Overlay indicator quand pas d'image ou pour mettre en évidence l'emplacement */}
-      <div
-        className={cn(
-          "relative z-10 flex h-full w-full flex-col justify-between",
-          hasValidImage ? "opacity-0 hover:opacity-100 transition-opacity bg-black/60 p-3 rounded-lg text-white" : ""
-        )}
-      >
+      {/* Overlay indicator quand pas d'image */}
+      {!hasValidImage && (
+        <div className="relative z-10 flex h-full w-full flex-col justify-between">
         {/* En-tête de l'emplacement */}
         <div className="flex items-center justify-between gap-2">
           <Badge
@@ -123,6 +130,7 @@ export function ImagePlaceholder({
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

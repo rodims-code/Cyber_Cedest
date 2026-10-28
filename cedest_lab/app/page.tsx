@@ -159,25 +159,36 @@ export default function HomePage() {
         {/* ========================================================================= */}
         {/* BANNIÈRE D'INFORMATION POUR LES IMAGES (MISE EN ÉVIDENCE POUR LE CLIENT) */}
         {/* ========================================================================= */}
-{/*         <div className="bg-primary/5 border-b border-primary/20 py-2.5 px-4 text-xs">
+        {/* ========================================================================= */}
+        {/* BANNIÈRE ANNONCE FORMATIONS & ACCÈS DIRECT */}
+        {/* ========================================================================= */}
+        <div className="bg-primary/10 border-b border-primary/20 py-2.5 px-4 text-xs">
           <div className="container mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-foreground">
-              <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Info className="size-3.5" />
-              </span>
-              <span className="font-medium">
-                💡 <strong className="text-primary">Zone Visuelle Préparée :</strong> Tous les cadres en pointillés ci-dessous indiquent les emplacements exacts de vos futures photos (dossier <code className="bg-background px-1.5 py-0.5 rounded border border-border font-mono text-[11px]">public/images/</code>).
+              <Badge variant="default" className="text-[10px] py-0 px-2 bg-primary text-primary-foreground font-semibold">
+                Inscriptions Ouvertes
+              </Badge>
+              <span className="font-medium text-xs">
+                🎓 <strong>Nouvelles Formations Certifiantes :</strong> Initiation informatique, Word, Excel & Panneaux Solaires (en ligne ou présentiel à Kinshasa).
               </span>
             </div>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 text-primary hover:underline font-semibold text-xs ml-auto"
-            >
-              <LogIn className="size-3.5" />
-              Accéder à la page de Login →
-            </Link>
+            <div className="flex items-center gap-4 ml-auto">
+              <Link
+                href="/formations"
+                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline text-xs"
+              >
+                Découvrir le programme →
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs"
+              >
+                <LogIn className="size-3" />
+                <span>Espace Login</span>
+              </Link>
+            </div>
           </div>
-        </div> */}
+        </div>
 
         {/* ========================================================================= */}
         {/* SECTION HERO */}
@@ -275,9 +286,25 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Colonne Droite : EMPLACEMENT PHOTO PRINCIPALE (HERO IMAGE) */}
-              <div className="lg:col-span-5 flex flex-col w-full h-full rounded-lg border border-border/60 overflow-hidden shadow-sm">
-                    <img src="/images/hero-cyber-cedest.jpg" alt="Façade ou Vue Intérieure Cyber Cedest" className="h-full bg-cover" />
+              {/* Colonne Droite : PHOTO PRINCIPALE (HERO IMAGE) */}
+              <div className="lg:col-span-5 flex flex-col">
+                <div className="group relative w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl">
+                  <img
+                    src="/images/hero-cyber-cedest.jpg"
+                    alt="Cyber Cedest - Façade et Équipements à Kinshasa"
+                    className="w-full h-[340px] sm:h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-white/10">
+                      <Sparkles className="size-3.5 text-amber-400" />
+                      <span className="font-medium">Cyber Cedest • Kinshasa RDC</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-white/95 text-black font-semibold text-[11px] shadow-xs">
+                      📍 Kinshasa
+                    </Badge>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -310,13 +337,14 @@ export default function HomePage() {
                 return (
                   <Card key={service.id} className="flex flex-col justify-between overflow-hidden border border-border shadow-xs hover:shadow-md transition-all duration-300">
                     
-                    {/* Emplacement Image du Service */}
+                    {/* Image du Service */}
                     <div className="p-4 pb-0">
                       <ImagePlaceholder
                         title={service.image.title}
                         suggestedPath={service.image.path}
                         dimensions={service.image.dimensions}
                         description={service.image.description}
+                        imageSrc={service.image.path}
                         aspectRatio="video"
                         className="bg-background"
                       />
@@ -353,18 +381,35 @@ export default function HomePage() {
                       </ul>
                     </CardContent>
 
-                    <CardFooter className="pt-4 border-t border-border/60 flex items-center justify-between">
-                      <a
-                        href="https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20un%20devis%20pour%20vos%20services"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs gap-1.5")}
-                      >
-                        <MessageCircle className="size-3.5 text-emerald-600" />
-                        <span>Demander un devis</span>
-                      </a>
+                    <CardFooter className="pt-4 border-t border-border/60 flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a
+                          href={`https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20un%20devis%20ou%20des%20informations%20concernant%20le%20service%20:%20${encodeURIComponent(
+                            service.title
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs gap-1.5")}
+                        >
+                          <MessageCircle className="size-3.5 text-emerald-600" />
+                          <span>Demander un devis</span>
+                        </a>
 
-                      <span className="text-[11px] text-muted-foreground font-mono">
+                        {service.id === "formation" && (
+                          <Link
+                            href="/formations"
+                            className={cn(
+                              buttonVariants({ variant: "default", size: "sm" }),
+                              "text-xs gap-1.5 font-medium shadow-xs"
+                            )}
+                          >
+                            <GraduationCap className="size-3.5" />
+                            <span>Voir le programme complet</span>
+                          </Link>
+                        )}
+                      </div>
+
+                      <span className="text-[11px] text-muted-foreground font-mono hidden sm:inline-block">
                         Kinshasa • RDC
                       </span>
                     </CardFooter>
@@ -396,11 +441,11 @@ export default function HomePage() {
               </div>
 
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs text-primary max-w-xs">
-                ✨ <strong>À noter :</strong> Vous pouvez glisser vos images directement dans <code className="font-mono bg-background px-1 rounded">public/images/gallery/</code>.
+                ✨ <strong>En direct :</strong> Photos authentiques de nos installations réelles à Kinshasa.
               </div>
             </div>
 
-            {/* Grille de 4 emplacements photos */}
+            {/* Grille de 4 photos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {galleryItems.map((item, index) => (
                 <div key={index} className="flex flex-col space-y-2">
@@ -409,6 +454,7 @@ export default function HomePage() {
                     suggestedPath={item.suggestedPath}
                     dimensions={item.dimensions}
                     description={item.description}
+                    imageSrc={item.suggestedPath}
                     aspectRatio="tall"
                     className="bg-card shadow-xs"
                   />

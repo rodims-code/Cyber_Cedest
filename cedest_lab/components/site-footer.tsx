@@ -7,6 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 export function SiteFooter() {
+  const [currentYear, setCurrentYear] = React.useState<number>(2026)
+
+  React.useEffect(() => {
+    setCurrentYear(new Date().getFullYear())
+  }, [])
   return (
     <footer id="contact" className="border-t border-border/60 bg-muted/20">
       <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -36,24 +41,25 @@ export function SiteFooter() {
             </h4>
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li>
-                <a href="#services" className="hover:text-foreground transition-colors">
+                <Link href="/#services" className="hover:text-foreground transition-colors">
                   Bureautique & Impression HD
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#services" className="hover:text-foreground transition-colors">
+                <Link href="/#services" className="hover:text-foreground transition-colors">
                   Internet & Wi-Fi MikroTik
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#services" className="hover:text-foreground transition-colors">
+                <Link href="/#services" className="hover:text-foreground transition-colors">
                   Énergie Solaire & Onduleurs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#services" className="hover:text-foreground transition-colors">
-                  Formation Informatique
-                </a>
+                <Link href="/formations" className="hover:text-foreground transition-colors text-primary font-medium flex items-center gap-1">
+                  <span>Catalogue Formations (En ligne / Présentiel)</span>
+                  <span>→</span>
+                </Link>
               </li>
             </ul>
           </div>
@@ -109,7 +115,7 @@ export function SiteFooter() {
         <Separator className="my-8" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Cyber Cedest. Tous droits réservés.</p>
+          <p>© {currentYear} Cyber Cedest. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
               <LogIn className="size-3" />

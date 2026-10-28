@@ -11,11 +11,12 @@ export function SiteNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navLinks = [
-    { label: "Accueil", href: "#" },
-    { label: "Nos Services", href: "#services" },
-    { label: "Galerie & Photos", href: "#galerie" },
-    { label: "Pourquoi Nous", href: "#pourquoi-nous" },
-    { label: "Contact", href: "#contact" },
+    { label: "Accueil", href: "/" },
+    { label: "Nos Services", href: "/#services" },
+    { label: "Formations", href: "/formations", highlight: true },
+    { label: "Galerie & Photos", href: "/#galerie" },
+    { label: "Pourquoi Nous", href: "/#pourquoi-nous" },
+    { label: "Contact", href: "/#contact" },
   ]
 
   return (
@@ -44,13 +45,21 @@ export function SiteNavbar() {
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-foreground",
+                link.highlight
+                  ? "text-primary font-semibold flex items-center gap-1.5"
+                  : "text-muted-foreground"
+              )}
             >
               {link.label}
-            </a>
+              {link.highlight && (
+                <span className="flex size-1.5 rounded-full bg-primary" />
+              )}
+            </Link>
           ))}
         </nav>
 
@@ -99,14 +108,24 @@ export function SiteNavbar() {
         <div className="md:hidden border-b border-border bg-background/95 backdrop-blur-md px-4 py-4 space-y-3">
           <nav className="flex flex-col space-y-2">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className={cn(
+                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  link.highlight
+                    ? "bg-primary/10 text-primary font-semibold flex items-center justify-between"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
               >
-                {link.label}
-              </a>
+                <span>{link.label}</span>
+                {link.highlight && (
+                  <Badge variant="default" className="text-[10px] py-0 px-1.5">
+                    Nouveau
+                  </Badge>
+                )}
+              </Link>
             ))}
           </nav>
           <div className="pt-2 border-t border-border flex flex-col gap-2">
