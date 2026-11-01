@@ -7,11 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 export function SiteFooter() {
-  const [currentYear, setCurrentYear] = React.useState<number>(2026)
-
-  React.useEffect(() => {
-    setCurrentYear(new Date().getFullYear())
-  }, [])
+  const currentYear = new Date().getFullYear()
   return (
     <footer id="contact" className="border-t border-border/60 bg-muted/20">
       <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

@@ -1,0 +1,8 @@
+"use client";
+import { FormEvent, useState } from "react";
+import { createLead } from "@/features/leads/actions";
+export default function DemandePage() {
+  const [message, setMessage] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const result = await createLead(Object.fromEntries(new FormData(event.currentTarget))); setMessage(result.ok ? "Merci ! Votre demande a bien été envoyée." : result.error ?? "Erreur."); if (result.ok) event.currentTarget.reset(); }
+  return <main className="mx-auto max-w-xl px-6 py-16"><h1 className="mb-2 text-3xl font-bold">Faire une demande</h1><p className="mb-8 text-muted-foreground">L’équipe Cyber Cedest vous répond rapidement.</p><form onSubmit={submit} className="grid gap-4"><select name="type" required className="rounded-md border bg-background p-3"><option value="formation">Formation</option><option value="wifi">Wi-Fi</option><option value="solaire">Solaire</option><option value="bureautique">Bureautique</option><option value="autre">Autre</option></select><input name="nom" required minLength={2} placeholder="Nom complet" className="rounded-md border p-3" /><input name="telephone" required placeholder="Téléphone" className="rounded-md border p-3" /><input name="email" type="email" placeholder="E-mail (facultatif)" className="rounded-md border p-3" /><textarea name="details" placeholder="Décrivez votre besoin" rows={5} className="rounded-md border p-3" /><input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" /><button className="rounded-md bg-primary px-4 py-3 text-primary-foreground">Envoyer la demande</button>{message && <p role="status">{message}</p>}</form></main>;
+}
