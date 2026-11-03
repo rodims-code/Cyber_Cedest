@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cyber Cedest Lab
 
-## Getting Started
+Application interne de Cyber Cedest à Kinshasa, construite avec Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, Better Auth et Drizzle.
 
-First, run the development server:
+## Démarrage
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L’application est disponible sur `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Authentification et rôles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+L’authentification utilise Better Auth avec le plugin `admin`. Le rôle de l’utilisateur connecté est disponible dans `session.user.role`.
 
-## Learn More
+Les rôles applicatifs sont :
 
-To learn more about Next.js, take a look at the following resources:
+| Rôle | Pages accessibles depuis la sidebar |
+| --- | --- |
+| `gerant` | Mon espace, Demandes, Planning, Pointage, Caisse, Paie, Utilisateurs, Formations |
+| `operateur` | Mon espace, Demandes, Pointage, Caisse |
+| `technicien` | Mon espace, Demandes, Pointage |
+| `formateur` | Mon espace, Sessions de formation, Inscrits |
+| `eleve` | Tableau de bord uniquement (pages à définir) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tous les rôles, à l’exception de l’élève dont le menu reste volontairement minimal, disposent de **Mon espace** pour leurs informations personnelles : planning, heures et paie.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Après connexion, l’utilisateur est envoyé vers `/dashboard/<role>`.
 
-## Deploy on Vercel
+## Dashboards
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Les dashboards sont organisés par rôle dans `app/dashboard/<role>/` :
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/dashboard/
+├── eleve/
+├── formateur/
+├── gerant/
+├── operateur/
+└── technicien/
+```
+
+La configuration centralisée des menus est dans `components/app-sidebar.tsx` :
+
+- `baseItems` contient les liens communs ;
+- `roleBasedItems` contient les liens propres à chaque rôle ;
+- `authClient.useSession()` récupère la session côté client ;
+- sans session valide, la sidebar redirige vers `/login`.
+
+Les pages liées dans la sidebar sont actuellement des pages minimales lorsqu’aucune interface métier n’existe encore.
+
+## Sécurité des accès
+
+Masquer un lien dans la sidebar ne constitue pas une protection. Les pages et Server Actions doivent vérifier le rôle côté serveur avec `requireRole()` depuis `lib/session.ts` et les règles de `lib/permissions.ts`.
+
+À ce stade, les dashboards par rôle n’ont pas encore de `layout.tsx` dédié qui appelle `requireRole()`. Cette vérification doit être ajoutée avant de considérer les routes comme protégées.
+
+## Scripts utiles
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run db:studio
+```

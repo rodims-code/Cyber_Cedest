@@ -1,11 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { authClient } from "@/lib/auth-client"
 import {
   Sidebar,
   SidebarContent,
@@ -15,167 +17,97 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import {
+  BanknoteIcon,
+  CalendarDaysIcon,
+  CircleHelpIcon,
+  ClipboardCheckIcon,
+  ClipboardListIcon,
+  CommandIcon,
+  ContactIcon,
+  GraduationCapIcon,
+  LayoutDashboardIcon,
+  Settings2Icon,
+  UsersIcon,
+  WalletCardsIcon,
+} from "lucide-react"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: (
-        <LayoutDashboardIcon
-        />
-      ),
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <ListIcon
-        />
-      ),
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: (
-        <ChartBarIcon
-        />
-      ),
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <FolderIcon
-        />
-      ),
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: (
-        <UsersIcon
-        />
-      ),
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: (
-        <CameraIcon
-        />
-      ),
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: (
-        <CircleHelpIcon
-        />
-      ),
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: (
-        <DatabaseIcon
-        />
-      ),
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: (
-        <FileChartColumnIcon
-        />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <FileIcon
-        />
-      ),
-    },
-  ],
+type UserRole = "gerant" | "operateur" | "technicien" | "formateur" | "eleve"
+
+type NavigationItem = {
+  title: string
+  href: string
+  icon: React.ElementType
 }
+
+const baseItems: NavigationItem[] = [
+  { title: "Tableau de bord", href: "", icon: LayoutDashboardIcon },
+]
+
+const roleBasedItems: Record<UserRole, NavigationItem[]> = {
+  gerant: [
+    { title: "Mon espace", href: "/mon-espace", icon: ContactIcon },
+    { title: "Demandes", href: "/demandes", icon: ClipboardListIcon },
+    { title: "Planning", href: "/planning", icon: CalendarDaysIcon },
+    { title: "Pointage", href: "/pointage", icon: ClipboardCheckIcon },
+    { title: "Caisse", href: "/caisse", icon: WalletCardsIcon },
+    { title: "Paie", href: "/paie", icon: BanknoteIcon },
+    { title: "Utilisateurs", href: "/utilisateurs", icon: UsersIcon },
+    { title: "Formations", href: "/formations", icon: GraduationCapIcon },
+  ],
+  operateur: [
+    { title: "Mon espace", href: "/mon-espace", icon: ContactIcon },
+    { title: "Demandes", href: "/demandes", icon: ClipboardListIcon },
+    { title: "Pointage", href: "/pointage", icon: ClipboardCheckIcon },
+    { title: "Caisse", href: "/caisse", icon: WalletCardsIcon },
+  ],
+  technicien: [
+    { title: "Mon espace", href: "/mon-espace", icon: ContactIcon },
+    { title: "Demandes", href: "/demandes", icon: ClipboardListIcon },
+    { title: "Pointage", href: "/pointage", icon: ClipboardCheckIcon },
+  ],
+  formateur: [
+    { title: "Mon espace", href: "/mon-espace", icon: ContactIcon },
+    { title: "Sessions de formation", href: "/sessions", icon: CalendarDaysIcon },
+    { title: "Inscrits", href: "/inscrits", icon: UsersIcon },
+  ],
+  eleve: [], // TODO : définir les pages dédiées aux élèves.
+}
+
+const navSecondary = [
+  { title: "Paramètres", url: "/parametres", icon: Settings2Icon },
+  { title: "Support", url: "/support", icon: CircleHelpIcon },
+]
+
+function isUserRole(value: unknown): value is UserRole {
+  return ["gerant", "operateur", "technicien", "formateur", "eleve"].includes(
+    String(value)
+  )
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
+  const { data: session, isPending } = authClient.useSession()
+  const userRole = (session?.user as { role?: string } | undefined)?.role
+
+  useEffect(() => {
+    if (!isPending && (!session || !isUserRole(userRole))) {
+      router.replace("/login")
+    }
+  }, [isPending, router, session, userRole])
+
+  if (isPending || !session || !isUserRole(userRole)) {
+    return <Sidebar collapsible="offcanvas" {...props} />
+  }
+
+  const itemsToRender = [...baseItems, ...(roleBasedItems[userRole] || [])].map(
+    ({ href, icon: Icon, ...item }) => ({
+      ...item,
+      url: `/dashboard/${userRole}${href}`,
+      icon: <Icon />,
+    })
+  )
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -186,18 +118,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               render={<a href="#" />}
             >
               <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold">Acme Inc.</span>
+              <span className="text-base font-semibold uppercase">Cedest lab</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+      <SidebarContent className="flex flex-col gap-6 p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl">
+        <NavMain items={itemsToRender} />
+        <NavSecondary
+          items={navSecondary.map(({ icon: Icon, ...item }) => ({
+            ...item,
+            icon: <Icon />,
+          }))}
+          className="mt-auto"
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: session.user.name || "Utilisateur",
+            email: session.user.email,
+            avatar: session.user.image || "",
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   )
