@@ -1,13 +1,22 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { Wifi, LogIn, MapPin, Phone, MessageCircle, Mail } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 export function SiteFooter() {
-  const currentYear = new Date().getFullYear()
+  const [currentYear, setCurrentYear] = useState<number | null>(null)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setCurrentYear(new Date().getFullYear())
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
   return (
     <footer id="contact" className="border-t border-border/60 bg-muted/20">
       <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -111,7 +120,7 @@ export function SiteFooter() {
         <Separator className="my-8" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {currentYear} Cyber Cedest. Tous droits réservés.</p>
+          <p>© {currentYear ?? ""} Cyber Cedest. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hover:text-foreground transition-colors inline-flex items-center gap-1">
               <LogIn className="size-3" />
