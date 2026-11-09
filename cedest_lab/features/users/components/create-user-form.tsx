@@ -98,8 +98,8 @@ export function CreateUserForm() {
               defaultValue="operateur"
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
             >
-              <option value="operateur">Opérateur (bureautique, formations, caisse)</option>
-              <option value="technicien">Technicien (Wi-Fi MikroTik, solaire)</option>
+              <option value="operateur">Opérateur</option>
+              <option value="technicien">Technicien</option>
             </select>
           </div>
         </div>
