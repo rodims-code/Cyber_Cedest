@@ -13,9 +13,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
   BanknoteIcon,
@@ -31,6 +28,8 @@ import {
   UsersIcon,
   WalletCardsIcon,
 } from "lucide-react"
+
+import { TeamSwitcher } from "@/components/team-switcher"
 
 type UserRole = "gerant" | "operateur" | "technicien" | "formateur" | "eleve"
 
@@ -74,6 +73,19 @@ const roleBasedItems: Record<UserRole, NavigationItem[]> = {
   eleve: [], // TODO : définir les pages dédiées aux élèves.
 }
 
+const cedestSites = [
+  {
+    name: "Site KIMIALA",
+    logo: CommandIcon,
+    plan: "Cyber & Bureautique",
+  },
+  {
+    name: "Site SHELL",
+    logo: CommandIcon,
+    plan: "Wi-Fi & Services",
+  },
+]
+
 const navSecondary = [
   { title: "Paramètres", url: "/parametres", icon: Settings2Icon },
   { title: "Support", url: "/support", icon: CircleHelpIcon },
@@ -111,17 +123,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="#" />}
-            >
-              <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold uppercase">Cedest lab</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <TeamSwitcher teams={cedestSites} />
       </SidebarHeader>
       <SidebarContent className="flex flex-col gap-6 p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl">
         <NavMain items={itemsToRender} />
