@@ -1,18 +1,12 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
-
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { AlertCircle, Lock, Mail, LogIn } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -20,86 +14,112 @@ export function LoginForm({
 }: React.ComponentProps<"form">) {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+    setLoading(true);
+
     const form = new FormData(event.currentTarget);
-    const result = await authClient.signIn.email({
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-    });
-    if (result.error) setError("E-mail ou mot de passe incorrect.");
-    else {
-      const userRole = (result.data?.user as { role?: string } | undefined)
-        ?.role;
-      router.push(`/dashboard/${userRole}`);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        setError("Identifiants incorrects ou compte suspendu.");
+        setLoading(false);
+      } else {
+        const userRole = (result.data?.user as { role?: string } | undefined)
+          ?.role;
+        if (userRole) {
+          router.push(`/dashboard/${userRole}`);
+        } else {
+          router.push("/dashboard");
+        }
+      }
+    } catch {
+      setError("Impossible de contacter le serveur d'authentification.");
+      setLoading(false);
     }
   }
+
   return (
     <form
       onSubmit={submit}
-      className={cn("flex flex-col gap-6", className)}
+      className={cn("flex flex-col gap-5", className)}
       {...props}
     >
-      <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Connexion équipe</h1>
-          <p className="text-sm text-balance text-muted-foreground">
-            Enter your email below to login to your account
-          </p>
+      <div className="flex flex-col items-center gap-1.5 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">Connexion Équipe</h1>
+        <p className="text-sm text-muted-foreground">
+          Accédez au dashboard de gestion interne Cyber Cedest.
+        </p>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="size-4 shrink-0" />
+          <span>{error}</span>
         </div>
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="gerant@example.com"
-            required
-          />
-        </Field>
-        <Field>
-          <div className="flex items-center">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
+      )}
+
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold" htmlFor="email">
+            Adresse e-mail
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="votre.email@cybercedest.cd"
+              required
+              className="pl-9"
+            />
           </div>
-          <Input id="password" name="password" type="password" required />
-        </Field>
-        <Field>
-          <Button type="submit">Se connecter</Button>
-        </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
-        <Field>
-          <Button variant="outline" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path
-                d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                fill="currentColor"
-              />
-            </svg>
-            Login with Apple
-          </Button>
-          <Button variant="outline" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path
-                d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                fill="currentColor"
-              />
-            </svg>
-            Login with Google
-          </Button>
-          <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
-            <a href="#" className="underline underline-offset-4">
-              Sign up
-            </a>
-          </FieldDescription>
-        </Field>
-      </FieldGroup>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold" htmlFor="password">
+              Mot de passe
+            </label>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder="••••••••"
+              className="pl-9"
+            />
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full gap-2 font-semibold shadow-xs"
+        >
+          <LogIn className="size-4" />
+          {loading ? "Connexion en cours..." : "Se connecter"}
+        </Button>
+      </div>
+
+      <p className="text-center text-xs text-muted-foreground pt-2">
+        Réservé au personnel habilité (Gérant, Opérateurs, Techniciens).
+        Pour toute création ou réinitialisation, adressez-vous au gérant.
+      </p>
     </form>
   );
 }

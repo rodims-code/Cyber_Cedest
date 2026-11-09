@@ -21,6 +21,7 @@ import {
 
 import { SiteNavbar } from "@/components/site-navbar"
 import { SiteFooter } from "@/components/site-footer"
+import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button"
 import { ImagePlaceholder } from "@/components/image-placeholder"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -581,6 +582,7 @@ export default function HomePage() {
 
       {/* Footer avec lien Login */}
       <SiteFooter />
+      <WhatsAppFloatingButton />
     </div>
   )
 }

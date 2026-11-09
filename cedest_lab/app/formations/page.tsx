@@ -22,6 +22,7 @@ import {
 
 import { SiteNavbar } from "@/components/site-navbar"
 import { SiteFooter } from "@/components/site-footer"
+import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -378,6 +379,7 @@ export default function FormationsPage() {
 
       {/* Footer avec lien Login */}
       <SiteFooter />
+      <WhatsAppFloatingButton />
     </div>
   )
 }
