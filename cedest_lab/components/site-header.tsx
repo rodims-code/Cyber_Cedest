@@ -1,16 +1,19 @@
 import { MapPinIcon } from "lucide-react";
 
-import { MenubarDemo } from "@/components/MenubarDemo";
+import { HeaderMenus } from "@/components/header-menus";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import type { Role } from "@/lib/permissions";
 
 export function SiteHeader({
   siteNom,
   isAll = false,
+  role,
 }: {
   siteNom: string;
   isAll?: boolean;
+  role: Role;
 }) {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -27,9 +30,7 @@ export function SiteHeader({
             <span className="truncate">{siteNom}</span>
           </Badge>
         </div>
-        <div className="hidden md:block">
-          <MenubarDemo />
-        </div>
+        <HeaderMenus role={role} />
       </div>
     </header>
   );

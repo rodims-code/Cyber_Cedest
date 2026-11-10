@@ -14,7 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getMonEspace, type MonEspace } from "@/features/mon-espace/data";
-import { getCurrentSite } from "@/lib/current-site";
+import { getPunchContextForUser } from "@/features/pointage/queries";
+import { PunchCard } from "@/features/pointage/components/punch-card";
 import { requireRole } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -47,11 +48,11 @@ export async function MonEspacePage({
   role: "gerant" | "operateur" | "technicien";
 }) {
   const session = await requireRole([role]);
-  const currentSite = await getCurrentSite();
-  const data = await getMonEspace(
-    session.user.id,
-    currentSite.isAll ? null : currentSite.id
-  );
+  const [data, punchContext] = await Promise.all([
+    getMonEspace(session.user.id, role),
+    getPunchContextForUser(session.user.id, role),
+  ]);
+  const basePath = `/dashboard/${role}`;
 
   const firstName = session.user.name.trim().split(/\s+/)[0];
   const today = new Intl.DateTimeFormat("fr-FR", {
@@ -69,20 +70,23 @@ export async function MonEspacePage({
 
   return (
     <section className="mx-auto max-w-6xl space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Bonjour, {firstName}
-          </h1>
-          <p className="text-sm capitalize text-muted-foreground">{today}</p>
-        </div>
-        <PointageStatus pointage={data.pointage} />
+      <header className="space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight">
+          Bonjour, {firstName}
+        </h1>
+        <p className="text-sm capitalize text-muted-foreground">{today}</p>
       </header>
+
+      <PunchCard {...punchContext} />
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
-          <Pending pending={data.pending} />
-          <WeekPlanning data={data} />
+          <Pending pending={data.pending} basePath={basePath} />
+          <WeekPlanning
+            data={data}
+            basePath={basePath}
+            canViewPlanning={role === "gerant"}
+          />
         </div>
 
         <aside className="space-y-8">
@@ -94,56 +98,15 @@ export async function MonEspacePage({
   );
 }
 
-/* ---------- Pointage ---------- */
-
-function PointageStatus({ pointage }: { pointage: MonEspace["pointage"] }) {
-  let label: string;
-  let detail: string | null = null;
-  let active = false;
-
-  if (pointage.state === "en_poste") {
-    label = `En poste depuis ${pointage.since}`;
-    detail = pointage.site;
-    active = true;
-  } else if (pointage.state === "termine") {
-    label = `Journée terminée, ${pointage.from} à ${pointage.to}`;
-    detail = pointage.site;
-  } else {
-    label = "Pas encore pointé aujourd'hui";
-  }
-
-  return (
-    <div className="flex items-center gap-4 rounded-lg border bg-card px-4 py-3">
-      <span
-        aria-hidden
-        className={cn(
-          "size-2.5 shrink-0 rounded-full",
-          active ? "bg-emerald-500" : "bg-muted-foreground/40",
-        )}
-      />
-      <div className="min-w-0">
-        <p className="text-sm font-medium">{label}</p>
-        {detail && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="size-3" aria-hidden />
-            {detail}
-          </p>
-        )}
-      </div>
-      <Button
-        size="sm"
-        variant={active ? "outline" : "default"}
-        render={<Link href="/dashboard/pointage" />}
-      >
-        {active ? "Pointer le départ" : "Pointer l'arrivée"}
-      </Button>
-    </div>
-  );
-}
-
 /* ---------- À traiter ---------- */
 
-function Pending({ pending }: { pending: MonEspace["pending"] }) {
+function Pending({
+  pending,
+  basePath,
+}: {
+  pending: MonEspace["pending"];
+  basePath: string;
+}) {
   const items: {
     icon: LucideIcon;
     text: string;
@@ -156,7 +119,7 @@ function Pending({ pending }: { pending: MonEspace["pending"] }) {
       icon: Clock,
       count: pending.heuresAValider,
       text: `pointage${pending.heuresAValider > 1 ? "s" : ""} à valider`,
-      href: "/dashboard/pointage",
+      href: `${basePath}/pointage`,
     });
   }
   if (pending.nouvellesDemandes > 0) {
@@ -164,7 +127,7 @@ function Pending({ pending }: { pending: MonEspace["pending"] }) {
       icon: Inbox,
       count: pending.nouvellesDemandes,
       text: `nouvelle${pending.nouvellesDemandes > 1 ? "s" : ""} demande${pending.nouvellesDemandes > 1 ? "s" : ""} de client`,
-      href: "/dashboard/demandes",
+      href: `${basePath}/demandes`,
     });
   }
   for (const site of pending.caisseManquante) {
@@ -172,7 +135,7 @@ function Pending({ pending }: { pending: MonEspace["pending"] }) {
       icon: Wallet,
       count: null,
       text: `caisse du jour non saisie à ${site}`,
-      href: "/dashboard/caisse",
+      href: `${basePath}/caisse`,
     });
   }
 
@@ -220,7 +183,15 @@ function Pending({ pending }: { pending: MonEspace["pending"] }) {
 
 /* ---------- Planning de la semaine ---------- */
 
-function WeekPlanning({ data }: { data: MonEspace }) {
+function WeekPlanning({
+  data,
+  basePath,
+  canViewPlanning,
+}: {
+  data: MonEspace;
+  basePath: string;
+  canViewPlanning: boolean;
+}) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -228,14 +199,16 @@ function WeekPlanning({ data }: { data: MonEspace }) {
           <CalendarDays className="size-4 text-muted-foreground" aria-hidden />
           Mon planning cette semaine
         </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground"
-          render={<Link href="/dashboard/planning" />}
-        >
-          Planning complet
-        </Button>
+        {canViewPlanning && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            render={<Link href={`${basePath}/planning`} />}
+          >
+            Planning complet
+          </Button>
+        )}
       </div>
 
       <ul className="divide-y rounded-lg border bg-card">

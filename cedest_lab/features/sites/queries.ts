@@ -9,6 +9,10 @@ export type SiteItem = {
   actif: boolean;
 };
 
+export type SiteWithUsage = SiteItem & {
+  nbUtilisateurs: number;
+};
+
 /**
  * Récupère tous les sites actifs enregistrés en base, triés par nom.
  */
@@ -22,6 +26,29 @@ export async function getAllActiveSites(): Promise<SiteItem[]> {
     .from(sites)
     .where(eq(sites.actif, true))
     .orderBy(sites.nom);
+}
+
+/**
+ * Récupère tous les sites (actifs et inactifs) avec le nombre d'utilisateurs
+ * qui leur sont assignés. Réservé à l'écran Paramètres du gérant.
+ */
+export async function getAllSitesWithUsage(): Promise<SiteWithUsage[]> {
+  const [siteRows, assignments] = await Promise.all([
+    db.select().from(sites).orderBy(sites.nom),
+    db.select({ siteId: userSites.siteId }).from(userSites),
+  ]);
+
+  const counts = new Map<string, number>();
+  for (const assignment of assignments) {
+    counts.set(assignment.siteId, (counts.get(assignment.siteId) ?? 0) + 1);
+  }
+
+  return siteRows.map((site) => ({
+    id: site.id,
+    nom: site.nom,
+    actif: site.actif,
+    nbUtilisateurs: counts.get(site.id) ?? 0,
+  }));
 }
 
 /**

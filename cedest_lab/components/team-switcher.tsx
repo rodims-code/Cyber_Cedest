@@ -8,6 +8,8 @@ import {
   ChevronsUpDownIcon,
   Globe2Icon,
   Loader2Icon,
+  PlusIcon,
+  Settings2Icon,
 } from "lucide-react";
 
 import {
@@ -16,6 +18,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -42,9 +45,17 @@ export type CurrentSiteInfo = {
 export function TeamSwitcher({
   sites,
   currentSite,
+  canManageSites = false,
+  canAddSite = false,
+  siteCount = 0,
+  maxSites = 2,
 }: {
   sites: SiteOption[];
   currentSite: CurrentSiteInfo;
+  canManageSites?: boolean;
+  canAddSite?: boolean;
+  siteCount?: number;
+  maxSites?: number;
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
@@ -173,6 +184,32 @@ export function TeamSwitcher({
                 );
               })}
             </DropdownMenuGroup>
+
+            {canManageSites && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push("/dashboard/gerant/parametres#sites")
+                  }
+                  className="flex items-center gap-2 p-2 cursor-pointer"
+                >
+                  <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                    {canAddSite ? (
+                      <PlusIcon className="size-3.5 text-primary" />
+                    ) : (
+                      <Settings2Icon className="size-3.5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <span className="flex-1 text-sm font-medium">
+                    {canAddSite ? "Ajouter un site" : "Gérer les sites"}
+                  </span>
+                  <DropdownMenuShortcut className="text-xs text-muted-foreground">
+                    {siteCount}/{maxSites}
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -1,15 +1,31 @@
 // src/features/mon-espace/data.ts
 //
-// DONNÉES DE DÉMONSTRATION. Les tables shifts / pointages / caisse (étapes 8 à 11)
-// n'existent pas encore. Quand elles seront prêtes, gardez les types ci-dessous
-// et remplacez le corps de getMonEspace() par de vraies requêtes Drizzle.
+// Données personnelles réelles : le planning vient de la table `shifts`,
+// les pointages et les heures de la table `pointages`.
 
-import { getActiveSiteById } from "@/features/sites/queries";
+import { getPersonalWeekShifts } from "@/features/planning/queries";
+import { getLeadsForRole } from "@/features/leads/queries";
+import {
+  getMyHoursSummary,
+  getMyPointages,
+  getOpenPointageForUser,
+} from "@/features/pointage/queries";
+import {
+  getKinshasaDateIso,
+  getKinshasaWeekStartIso,
+  getWeekdayIndex,
+  getWorkWeekDays,
+  isoDateToUtcNoon,
+} from "@/lib/time";
+import type { Role } from "@/lib/permissions";
 
-export type SiteName = "KIMIALA" | "SHELL";
 export type Fonction = "operateur" | "appui";
 
-export type DayShift = { site: SiteName; fonction: Fonction } | null;
+export type DayShift = {
+  siteId: string;
+  site: string;
+  fonction: Fonction;
+} | null;
 
 export type MonEspace = {
   /** Lundi à samedi (le dimanche reste à confirmer avec le gérant) */
@@ -19,93 +35,85 @@ export type MonEspace = {
   weekStart: Date;
   pointage:
     | { state: "absent" }
-    | { state: "en_poste"; since: string; site: SiteName }
-    | { state: "termine"; from: string; to: string; site: SiteName };
+    | { state: "en_poste"; since: string; site: string }
+    | { state: "termine"; from: string; to: string; site: string };
   monthHours: number;
   pending: {
     heuresAValider: number;
     nouvellesDemandes: number;
-    caisseManquante: SiteName[];
+    caisseManquante: string[];
   };
 };
 
-const HOUR = 3_600_000;
-
-/** Kinshasa est en UTC+1 toute l'année : on décale puis on lit en UTC. */
-function nowInKinshasa() {
-  return new Date(Date.now() + HOUR);
-}
-
-function siteMatches(site: SiteName, siteNom: string): boolean {
-  return siteNom.trim().toUpperCase().includes(site);
-}
-
 export async function getMonEspace(
-  _userId: string,
-  siteId?: string | null
+  userId: string,
+  role: Role
 ): Promise<MonEspace> {
-  const k = nowInKinshasa();
-  const dow = (k.getUTCDay() + 6) % 7; // 0 = lundi … 6 = dimanche
-  const weekStart = new Date(
-    Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() - dow)
+  const todayIso = getKinshasaDateIso();
+  const weekStartIso = getKinshasaWeekStartIso();
+  const days = getWorkWeekDays(weekStartIso);
+  const todayIndex = getWeekdayIndex(todayIso);
+
+  const [personalShifts, leads, openPointage, hoursSummary, latestPointages] =
+    await Promise.all([
+      getPersonalWeekShifts(userId, weekStartIso),
+      getLeadsForRole(role),
+      getOpenPointageForUser(userId),
+      getMyHoursSummary(userId, weekStartIso),
+      getMyPointages(userId, 1),
+    ]);
+
+  const shiftsByDate = new Map(
+    personalShifts.map((shift) => [shift.date, shift])
   );
 
-  const base: MonEspace = {
-    weekStart,
-    todayIndex: dow <= 5 ? dow : null,
-    week: [
-      { shift: { site: "KIMIALA", fonction: "operateur" }, hours: 8 },
-      { shift: { site: "KIMIALA", fonction: "operateur" }, hours: 7.5 },
-      { shift: null, hours: 0 },
-      { shift: { site: "SHELL", fonction: "appui" }, hours: 6.25 },
-      { shift: { site: "KIMIALA", fonction: "operateur" }, hours: 9 },
-      { shift: { site: "SHELL", fonction: "operateur" }, hours: 0 },
-    ],
-    pointage: { state: "en_poste", since: "08:12", site: "KIMIALA" },
-    monthHours: 112.5,
-    pending: {
-      heuresAValider: 4,
-      nouvellesDemandes: 3,
-      caisseManquante: ["SHELL"],
-    },
-  };
+  const week = days.map((date) => {
+    const shift = shiftsByDate.get(date);
+    return {
+      shift: shift
+        ? {
+            siteId: shift.siteId,
+            site: shift.siteNom,
+            fonction: shift.fonction,
+          }
+        : null,
+      // Les heures viennent des pointages réels du jour, pas du planning :
+      // les horaires des postes ne sont pas encore définis dans le README.
+      hours: hoursSummary.weekByDate.get(date) ?? 0,
+    };
+  });
 
-  // Résolution du site sélectionné : on ne fait jamais confiance au nom côté client.
-  let siteNom: string | null = null;
-  if (siteId) {
-    const site = await getActiveSiteById(siteId);
-    siteNom = site?.nom ?? "__site_inconnu__";
-  }
-
-  // « Tous les sites » (gérant) : on conserve la vue personnelle complète.
-  if (!siteNom) {
-    return base;
-  }
-
-  const week = base.week.map((day) =>
-    day.shift && siteMatches(day.shift.site, siteNom)
-      ? day
-      : { shift: null, hours: 0 }
+  const closedToday = latestPointages.find(
+    (pointage) => pointage.date === todayIso && !pointage.enCours
   );
 
-  const pointage: MonEspace["pointage"] =
-    base.pointage.state !== "absent" &&
-    !siteMatches(base.pointage.site, siteNom)
-      ? { state: "absent" }
-      : base.pointage;
-
-  const weekHours = week.reduce((sum, day) => sum + day.hours, 0);
+  let pointage: MonEspace["pointage"] = { state: "absent" };
+  if (openPointage) {
+    pointage = {
+      state: "en_poste",
+      since: openPointage.arriveeLabel,
+      site: openPointage.siteNom,
+    };
+  } else if (closedToday) {
+    pointage = {
+      state: "termine",
+      from: closedToday.arriveeLabel,
+      to: closedToday.departLabel ?? "—",
+      site: closedToday.siteNom,
+    };
+  }
 
   return {
-    ...base,
+    weekStart: isoDateToUtcNoon(weekStartIso),
+    todayIndex: todayIndex <= 5 ? todayIndex : null,
     week,
     pointage,
-    monthHours: Math.round(weekHours * 4 * 10) / 10,
+    monthHours: hoursSummary.monthHours,
     pending: {
-      ...base.pending,
-      caisseManquante: base.pending.caisseManquante.filter((site) =>
-        siteMatches(site, siteNom)
-      ),
+      heuresAValider: 0,
+      nouvellesDemandes: leads.filter((lead) => lead.status === "nouveau")
+        .length,
+      caisseManquante: [],
     },
   };
 }

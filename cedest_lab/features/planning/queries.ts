@@ -1,344 +1,169 @@
-import { ALL_SITES_LABEL } from "@/lib/site-constants";
+import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
+
+import { db } from "@/app/db";
+import { shifts, sites, user } from "@/app/db/schema";
+import { getAllActiveSites } from "@/features/sites/queries";
 import {
-  getActiveSiteById,
-  getAllActiveSites,
-} from "@/features/sites/queries";
+  getPreviousWeekStartIso,
+  getWorkWeekDays,
+} from "@/lib/time";
 
-export type PlanningShift = {
+export type PlanningOperator = {
   id: string;
-  site: string;
-  employe: string;
-  fonction: string;
-  debut: string;
-  fin: string;
-  poste: string;
+  nom: string;
 };
 
-export type PlanningDay = {
-  jourLabel: string;
-  dateLabel: string;
-  isToday: boolean;
-  shifts: PlanningShift[];
+export type PlanningSiteOption = {
+  id: string;
+  nom: string;
 };
 
-export type PlanningSemaine = {
-  siteId: string | null;
+export type PlanningShiftRow = {
+  id: number;
+  date: string;
+  siteId: string;
+  userId: string;
+  fonction: "operateur" | "appui";
+  userName: string;
+};
+
+export type PlanningWeekData = {
+  weekStart: string;
+  days: string[];
+  sites: PlanningSiteOption[];
+  operators: PlanningOperator[];
+  shifts: PlanningShiftRow[];
+  previousShifts: PlanningShiftRow[];
+  scopeSiteId: string | null;
+};
+
+export type PersonalShift = {
+  date: string;
+  siteId: string;
   siteNom: string;
-  isAll: boolean;
-  days: PlanningDay[];
+  fonction: "operateur" | "appui";
 };
-
-type ShiftTemplate = Omit<PlanningShift, "id" | "site">;
 
 /**
- * Planning de démonstration par site.
- * Les tables shifts / planning seront branchées à l'étape dédiée ; en attendant,
- * les données restent strictement indexées par site pour que le switcher soit réel.
+ * Opérateurs actifs (non bannis) pouvant être planifiés.
+ * Le rôle « appui » est une fonction du poste, pas un rôle de compte.
  */
-const PLANNING_TEMPLATES: Record<string, ShiftTemplate[][]> = {
-  KIMIALA: [
-    [
-      {
-        employe: "Christelle M.",
-        fonction: "Opérateur",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Accueil",
-      },
-      {
-        employe: "Jean K.",
-        fonction: "Appui",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Bureautique",
-      },
-    ],
-    [
-      {
-        employe: "Christelle M.",
-        fonction: "Opérateur",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Accueil",
-      },
-      {
-        employe: "Patrick L.",
-        fonction: "Opérateur",
-        debut: "08:00",
-        fin: "14:00",
-        poste: "Cyber",
-      },
-    ],
-    [
-      {
-        employe: "Jean K.",
-        fonction: "Appui",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Bureautique",
-      },
-      {
-        employe: "Patrick L.",
-        fonction: "Opérateur",
-        debut: "14:00",
-        fin: "20:00",
-        poste: "Cyber",
-      },
-    ],
-    [
-      {
-        employe: "Christelle M.",
-        fonction: "Opérateur",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Accueil",
-      },
-      {
-        employe: "Jean K.",
-        fonction: "Appui",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Bureautique",
-      },
-    ],
-    [
-      {
-        employe: "Patrick L.",
-        fonction: "Opérateur",
-        debut: "08:00",
-        fin: "14:00",
-        poste: "Cyber",
-      },
-      {
-        employe: "Christelle M.",
-        fonction: "Opérateur",
-        debut: "14:00",
-        fin: "20:00",
-        poste: "Accueil",
-      },
-    ],
-    [
-      {
-        employe: "Jean K.",
-        fonction: "Appui",
-        debut: "09:00",
-        fin: "15:00",
-        poste: "Bureautique",
-      },
-      {
-        employe: "Christelle M.",
-        fonction: "Opérateur",
-        debut: "09:00",
-        fin: "15:00",
-        poste: "Accueil",
-      },
-    ],
-  ],
-  SHELL: [
-    [
-      {
-        employe: "Sarah T.",
-        fonction: "Technicien",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Wi-Fi",
-      },
-      {
-        employe: "David N.",
-        fonction: "Technicien",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Solaire",
-      },
-    ],
-    [
-      {
-        employe: "Sarah T.",
-        fonction: "Technicien",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Wi-Fi",
-      },
-      {
-        employe: "Michel B.",
-        fonction: "Appui",
-        debut: "08:00",
-        fin: "14:00",
-        poste: "Technique",
-      },
-    ],
-    [
-      {
-        employe: "David N.",
-        fonction: "Technicien",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Solaire",
-      },
-      {
-        employe: "Sarah T.",
-        fonction: "Technicien",
-        debut: "14:00",
-        fin: "20:00",
-        poste: "Wi-Fi",
-      },
-    ],
-    [
-      {
-        employe: "Michel B.",
-        fonction: "Appui",
-        debut: "08:00",
-        fin: "14:00",
-        poste: "Technique",
-      },
-      {
-        employe: "David N.",
-        fonction: "Technicien",
-        debut: "10:00",
-        fin: "18:00",
-        poste: "Solaire",
-      },
-    ],
-    [
-      {
-        employe: "Sarah T.",
-        fonction: "Technicien",
-        debut: "08:00",
-        fin: "16:00",
-        poste: "Wi-Fi",
-      },
-      {
-        employe: "Michel B.",
-        fonction: "Appui",
-        debut: "14:00",
-        fin: "20:00",
-        poste: "Technique",
-      },
-    ],
-    [
-      {
-        employe: "David N.",
-        fonction: "Technicien",
-        debut: "09:00",
-        fin: "15:00",
-        poste: "Solaire",
-      },
-      {
-        employe: "Sarah T.",
-        fonction: "Technicien",
-        debut: "09:00",
-        fin: "15:00",
-        poste: "Wi-Fi",
-      },
-    ],
-  ],
-};
-
-const KINSHASA_OFFSET_MS = 60 * 60 * 1000;
-
-function getKinshasaWeekStart(): Date {
-  const kinshasaNow = new Date(Date.now() + KINSHASA_OFFSET_MS);
-  const dayOfWeek = (kinshasaNow.getUTCDay() + 6) % 7; // 0 = lundi
-
-  return new Date(
-    Date.UTC(
-      kinshasaNow.getUTCFullYear(),
-      kinshasaNow.getUTCMonth(),
-      kinshasaNow.getUTCDate() - dayOfWeek
+export async function getActiveOperators(): Promise<PlanningOperator[]> {
+  const rows = await db
+    .select({ id: user.id, nom: user.name })
+    .from(user)
+    .where(
+      and(
+        eq(user.role, "operateur"),
+        or(eq(user.banned, false), isNull(user.banned))
+      )
     )
-  );
+    .orderBy(asc(user.name));
+
+  return rows;
 }
 
-function getTodayIndex(): number | null {
-  const kinshasaNow = new Date(Date.now() + KINSHASA_OFFSET_MS);
-  const dayOfWeek = (kinshasaNow.getUTCDay() + 6) % 7;
-  return dayOfWeek <= 5 ? dayOfWeek : null;
-}
+async function getShiftRows(
+  days: string[],
+  scopeSiteId: string | null
+): Promise<PlanningShiftRow[]> {
+  if (days.length === 0) return [];
 
-function templateForSite(nom: string): ShiftTemplate[][] {
-  const normalized = nom.trim().toUpperCase();
+  const rows = await db
+    .select({
+      id: shifts.id,
+      date: shifts.date,
+      siteId: shifts.siteId,
+      userId: shifts.userId,
+      fonction: shifts.fonction,
+      userName: user.name,
+    })
+    .from(shifts)
+    .innerJoin(user, eq(shifts.userId, user.id))
+    .innerJoin(sites, eq(shifts.siteId, sites.id))
+    .where(
+      and(
+        inArray(shifts.date, days),
+        eq(sites.actif, true),
+        scopeSiteId ? eq(shifts.siteId, scopeSiteId) : undefined
+      )
+    )
+    .orderBy(asc(shifts.date), asc(user.name));
 
-  if (normalized.includes("KIMIALA")) {
-    return PLANNING_TEMPLATES.KIMIALA;
-  }
-
-  if (normalized.includes("SHELL")) {
-    return PLANNING_TEMPLATES.SHELL;
-  }
-
-  return [];
-}
-
-function buildPlanning(
-  siteId: string | null,
-  siteNom: string,
-  isAll: boolean,
-  sources: { site: string; template: ShiftTemplate[][] }[]
-): PlanningSemaine {
-  const weekStart = getKinshasaWeekStart();
-  const todayIndex = getTodayIndex();
-
-  const days: PlanningDay[] = Array.from({ length: 6 }, (_, index) => {
-    const day = new Date(weekStart);
-    day.setUTCDate(day.getUTCDate() + index);
-
-    const jourLabel = new Intl.DateTimeFormat("fr-FR", {
-      weekday: "long",
-      timeZone: "UTC",
-    }).format(day);
-
-    const dateLabel = new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "short",
-      timeZone: "UTC",
-    }).format(day);
-
-    const shifts = sources.flatMap(({ site, template }) =>
-      (template[index] ?? []).map((shift, shiftIndex) => ({
-        id: `${site}-${index}-${shiftIndex}`,
-        site,
-        ...shift,
-      }))
-    );
-
-    return {
-      jourLabel,
-      dateLabel,
-      isToday: todayIndex === index,
-      shifts,
-    };
-  });
-
-  return { siteId, siteNom, isAll, days };
+  return rows;
 }
 
 /**
- * Récupère le planning de la semaine filtré par site.
- * `siteId === null` correspond à la vue cumulée du gérant.
+ * Charge tout ce qu'il faut pour préparer une semaine :
+ * sites actifs, opérateurs actifs, postes déjà enregistrés et postes de la
+ * semaine précédente (rotation / copie).
  */
-export async function getPlanningSemaine(
-  siteId: string | null
-): Promise<PlanningSemaine> {
-  if (siteId === null) {
-    const activeSites = await getAllActiveSites();
+export async function getPlanningWeek(
+  weekStart: string,
+  scopeSiteId: string | null
+): Promise<PlanningWeekData> {
+  const days = getWorkWeekDays(weekStart);
+  const previousDays = getWorkWeekDays(getPreviousWeekStartIso(weekStart));
 
-    return buildPlanning(
-      null,
-      ALL_SITES_LABEL,
-      true,
-      activeSites.map((site) => ({
-        site: site.nom,
-        template: templateForSite(site.nom),
-      }))
-    );
-  }
+  const [activeSites, operators, currentShifts, previousShifts] =
+    await Promise.all([
+      getAllActiveSites(),
+      getActiveOperators(),
+      getShiftRows(days, scopeSiteId),
+      getShiftRows(previousDays, scopeSiteId),
+    ]);
 
-  const site = await getActiveSiteById(siteId);
-  if (!site) {
-    return buildPlanning(siteId, "Site indisponible", false, []);
-  }
+  const scopedSites = scopeSiteId
+    ? activeSites.filter((site) => site.id === scopeSiteId)
+    : activeSites;
 
-  return buildPlanning(site.id, site.nom, false, [
-    { site: site.nom, template: templateForSite(site.nom) },
-  ]);
+  return {
+    weekStart,
+    days,
+    sites: scopedSites.map((site) => ({ id: site.id, nom: site.nom })),
+    operators,
+    shifts: currentShifts,
+    previousShifts,
+    scopeSiteId,
+  };
+}
+
+/** Planning personnel d'un employé pour une semaine donnée. */
+export async function getPersonalWeekShifts(
+  userId: string,
+  weekStart: string
+): Promise<PersonalShift[]> {
+  const days = getWorkWeekDays(weekStart);
+
+  return db
+    .select({
+      date: shifts.date,
+      siteId: shifts.siteId,
+      siteNom: sites.nom,
+      fonction: shifts.fonction,
+    })
+    .from(shifts)
+    .innerJoin(sites, eq(shifts.siteId, sites.id))
+    .where(and(eq(shifts.userId, userId), inArray(shifts.date, days)))
+    .orderBy(asc(shifts.date));
+}
+
+/** Poste prévu pour un employé à une date donnée, s'il existe. */
+export async function getShiftForUserOnDate(
+  userId: string,
+  dateIso: string
+): Promise<PersonalShift | null> {
+  const rows = await db
+    .select({
+      date: shifts.date,
+      siteId: shifts.siteId,
+      siteNom: sites.nom,
+      fonction: shifts.fonction,
+    })
+    .from(shifts)
+    .innerJoin(sites, eq(shifts.siteId, sites.id))
+    .where(and(eq(shifts.userId, userId), eq(shifts.date, dateIso)))
+    .limit(1);
+
+  return rows[0] ?? null;
 }

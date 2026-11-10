@@ -97,15 +97,26 @@ export async function getSelectableSites(): Promise<{
   sites: SiteOption[];
   currentSite: CurrentSite;
   canSelectAll: boolean;
+  role: Role | null;
 }> {
   const session = await getSession();
   if (!session?.user) {
-    return { sites: [], currentSite: noSite(), canSelectAll: false };
+    return {
+      sites: [],
+      currentSite: noSite(),
+      canSelectAll: false,
+      role: null,
+    };
   }
 
   const role = isRole(session.user.role) ? session.user.role : null;
   if (!role) {
-    return { sites: [], currentSite: noSite(), canSelectAll: false };
+    return {
+      sites: [],
+      currentSite: noSite(),
+      canSelectAll: false,
+      role: null,
+    };
   }
 
   const userSites = await getSitesForUser(session.user.id, role);
@@ -122,5 +133,5 @@ export async function getSelectableSites(): Promise<{
     siteOptions.push({ id: site.id, nom: site.nom });
   }
 
-  return { sites: siteOptions, currentSite, canSelectAll };
+  return { sites: siteOptions, currentSite, canSelectAll, role };
 }

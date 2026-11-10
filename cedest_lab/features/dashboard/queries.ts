@@ -4,6 +4,7 @@ import {
   getActiveSiteById,
   getAllActiveSites,
 } from "@/features/sites/queries";
+import { getPointageStatsDuJour } from "@/features/pointage/queries";
 
 export type CaisseDuJourStats = {
   soldeActuel: number;
@@ -59,14 +60,14 @@ export type CaisseDuJourData = CaisseDuJourStats & {
 type SiteProfile = {
   caisseDuJour: Omit<CaisseDuJourStats, "dateKinshasa">;
   vueEnsemble: VueEnsembleStats;
-  pointages: PointageStats;
   activiteRecente: ActiviteRecente[];
 };
 
 /**
  * Données de démonstration par site.
- * Les tables d'exploitation (caisse, pointages, planning) n'existent pas encore ;
- * ce module centralise les chiffres afin que chaque requête reste filtrée par site.
+ * La caisse, l'activité et la vue d'ensemble restent des données fictives ;
+ * seuls les pointages sont réels (table `pointages`). Chaque requête reste
+ * filtrée par site.
  */
 const SITE_PROFILES: Record<string, SiteProfile> = {
   KIMIALA: {
@@ -85,11 +86,6 @@ const SITE_PROFILES: Record<string, SiteProfile> = {
       postesTotal: 24,
       tauxOccupationPct: 75,
       devise: "USD",
-    },
-    pointages: {
-      presents: 6,
-      retards: 1,
-      absents: 0,
     },
     activiteRecente: [
       {
@@ -134,11 +130,6 @@ const SITE_PROFILES: Record<string, SiteProfile> = {
       postesTotal: 16,
       tauxOccupationPct: 69,
       devise: "USD",
-    },
-    pointages: {
-      presents: 4,
-      retards: 0,
-      absents: 1,
     },
     activiteRecente: [
       {
@@ -186,11 +177,6 @@ function emptyProfile(): SiteProfile {
       postesTotal: 0,
       tauxOccupationPct: 0,
       devise: "USD",
-    },
-    pointages: {
-      presents: 0,
-      retards: 0,
-      absents: 0,
     },
     activiteRecente: [],
   };
@@ -272,20 +258,6 @@ function aggregateProfiles(profiles: SiteProfile[]): SiteProfile {
         postesTotal > 0 ? Math.round((postesOccupes / postesTotal) * 100) : 0,
       devise: "USD",
     },
-    pointages: {
-      presents: profiles.reduce(
-        (sum, profile) => sum + profile.pointages.presents,
-        0
-      ),
-      retards: profiles.reduce(
-        (sum, profile) => sum + profile.pointages.retards,
-        0
-      ),
-      absents: profiles.reduce(
-        (sum, profile) => sum + profile.pointages.absents,
-        0
-      ),
-    },
     activiteRecente: profiles
       .flatMap((profile) => profile.activiteRecente)
       .sort((a, b) => b.heure.localeCompare(a.heure))
@@ -309,13 +281,15 @@ function toSiteStats(
   profile: SiteProfile,
   siteId: string | null,
   siteNom: string,
-  isAll: boolean
+  isAll: boolean,
+  pointages: PointageStats
 ): SiteStats {
   return {
     siteId,
     siteNom,
     isAll,
     ...profile,
+    pointages,
     caisseDuJour: {
       ...profile.caisseDuJour,
       dateKinshasa: getKinshasaDateString(),
@@ -334,7 +308,10 @@ export async function getDashboardStats(
   siteId: string | null
 ): Promise<SiteStats> {
   if (siteId === null) {
-    const activeSites = await getAllActiveSites();
+    const [activeSites, pointages] = await Promise.all([
+      getAllActiveSites(),
+      getPointageStatsDuJour(null),
+    ]);
     const profile =
       activeSites.length > 0
         ? aggregateProfiles(
@@ -342,19 +319,28 @@ export async function getDashboardStats(
           )
         : emptyProfile();
 
-    return toSiteStats(profile, null, ALL_SITES_LABEL, true);
+    return toSiteStats(profile, null, ALL_SITES_LABEL, true, pointages);
   }
 
   const site = await getActiveSiteById(siteId);
   if (!site) {
-    return toSiteStats(emptyProfile(), siteId, "Site indisponible", false);
+    return toSiteStats(
+      emptyProfile(),
+      siteId,
+      "Site indisponible",
+      false,
+      { presents: 0, retards: 0, absents: 0 }
+    );
   }
+
+  const pointages = await getPointageStatsDuJour(site.id);
 
   return toSiteStats(
     profileForSiteName(site.nom),
     site.id,
     site.nom,
-    false
+    false,
+    pointages
   );
 }
 

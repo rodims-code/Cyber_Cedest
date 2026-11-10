@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { CommandPalette } from "@/components/command-palette";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { MAX_SITES } from "@/config/site";
 import { getSelectableSites } from "@/lib/current-site";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +14,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { sites, currentSite } = await getSelectableSites();
+  const { sites, currentSite, canSelectAll, role } =
+    await getSelectableSites();
+
+  const effectiveRole = role ?? "operateur";
+  const siteCount = sites.length - (canSelectAll ? 1 : 0);
+  const canAddSite = role === "gerant" && siteCount < MAX_SITES;
 
   return (
     <SidebarProvider
@@ -23,12 +30,25 @@ export default async function DashboardLayout({
         } as CSSProperties
       }
     >
-      <AppSidebar variant="inset" sites={sites} currentSite={currentSite} />
+      <AppSidebar
+        variant="inset"
+        role={effectiveRole}
+        sites={sites}
+        currentSite={currentSite}
+        canAddSite={canAddSite}
+        siteCount={siteCount}
+        maxSites={MAX_SITES}
+      />
       <SidebarInset>
-        <SiteHeader siteNom={currentSite.nom} isAll={currentSite.isAll} />
+        <SiteHeader
+          siteNom={currentSite.nom}
+          isAll={currentSite.isAll}
+          role={effectiveRole}
+        />
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
           {children}
         </div>
+        <CommandPalette role={effectiveRole} />
       </SidebarInset>
     </SidebarProvider>
   );
