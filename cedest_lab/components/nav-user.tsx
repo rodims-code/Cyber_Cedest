@@ -1,5 +1,8 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   Avatar,
   AvatarFallback,
@@ -21,6 +24,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
 
 export function NavUser({
   user,
@@ -32,6 +36,28 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  async function handleLogout() {
+    setIsLoggingOut(true)
+
+    try {
+      const result = await authClient.signOut()
+      if (result.error) {
+        toast.error("La déconnexion a échoué. Veuillez réessayer.")
+        setIsLoggingOut(false)
+        return
+      }
+
+      router.replace("/login")
+      router.refresh()
+    } catch {
+      toast.error("Impossible de contacter le serveur d'authentification.")
+      setIsLoggingOut(false)
+    }
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -94,10 +120,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon
-              />
-              Log out
+            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              <LogOutIcon />
+              {isLoggingOut ? "Déconnexion..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
