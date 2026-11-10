@@ -7,6 +7,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { MAX_SITES } from "@/config/site";
 import { getSelectableSites } from "@/lib/current-site";
 
+import { Toaster } from "@/components/ui/toast"
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
@@ -47,6 +49,7 @@ export default async function DashboardLayout({
         />
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
           {children}
+          <Toaster />
         </div>
         <CommandPalette role={effectiveRole} />
       </SidebarInset>
