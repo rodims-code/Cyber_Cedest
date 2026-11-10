@@ -4,6 +4,8 @@
 // n'existent pas encore. Quand elles seront prêtes, gardez les types ci-dessous
 // et remplacez le corps de getMonEspace() par de vraies requêtes Drizzle.
 
+import { getActiveSiteById } from "@/features/sites/queries";
+
 export type SiteName = "KIMIALA" | "SHELL";
 export type Fonction = "operateur" | "appui";
 
@@ -34,14 +36,21 @@ function nowInKinshasa() {
   return new Date(Date.now() + HOUR);
 }
 
-export async function getMonEspace(_userId: string): Promise<MonEspace> {
+function siteMatches(site: SiteName, siteNom: string): boolean {
+  return siteNom.trim().toUpperCase().includes(site);
+}
+
+export async function getMonEspace(
+  _userId: string,
+  siteId?: string | null
+): Promise<MonEspace> {
   const k = nowInKinshasa();
   const dow = (k.getUTCDay() + 6) % 7; // 0 = lundi … 6 = dimanche
   const weekStart = new Date(
-    Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() - dow),
+    Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() - dow)
   );
 
-  return {
+  const base: MonEspace = {
     weekStart,
     todayIndex: dow <= 5 ? dow : null,
     week: [
@@ -58,6 +67,45 @@ export async function getMonEspace(_userId: string): Promise<MonEspace> {
       heuresAValider: 4,
       nouvellesDemandes: 3,
       caisseManquante: ["SHELL"],
+    },
+  };
+
+  // Résolution du site sélectionné : on ne fait jamais confiance au nom côté client.
+  let siteNom: string | null = null;
+  if (siteId) {
+    const site = await getActiveSiteById(siteId);
+    siteNom = site?.nom ?? "__site_inconnu__";
+  }
+
+  // « Tous les sites » (gérant) : on conserve la vue personnelle complète.
+  if (!siteNom) {
+    return base;
+  }
+
+  const week = base.week.map((day) =>
+    day.shift && siteMatches(day.shift.site, siteNom)
+      ? day
+      : { shift: null, hours: 0 }
+  );
+
+  const pointage: MonEspace["pointage"] =
+    base.pointage.state !== "absent" &&
+    !siteMatches(base.pointage.site, siteNom)
+      ? { state: "absent" }
+      : base.pointage;
+
+  const weekHours = week.reduce((sum, day) => sum + day.hours, 0);
+
+  return {
+    ...base,
+    week,
+    pointage,
+    monthHours: Math.round(weekHours * 4 * 10) / 10,
+    pending: {
+      ...base.pending,
+      caisseManquante: base.pending.caisseManquante.filter((site) =>
+        siteMatches(site, siteNom)
+      ),
     },
   };
 }

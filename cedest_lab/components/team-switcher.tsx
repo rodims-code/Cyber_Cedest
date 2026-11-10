@@ -1,7 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronsUpDown, Check } from "lucide-react"
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import {
+  Building2Icon,
+  CheckIcon,
+  ChevronsUpDownIcon,
+  Globe2Icon,
+  Loader2Icon,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -9,31 +16,68 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { setCurrentSite } from "@/features/sites/actions";
+import { ALL_SITES_VALUE } from "@/lib/site-constants";
+
+export type SiteOption = {
+  id: string; // UUID ou "ALL"
+  nom: string;
+};
+
+export type CurrentSiteInfo = {
+  id: string | null;
+  nom: string;
+  isAll: boolean;
+};
 
 export function TeamSwitcher({
-  teams,
+  sites,
+  currentSite,
 }: {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
+  sites: SiteOption[];
+  currentSite: CurrentSiteInfo;
 }) {
-  const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+  const [isPending, startTransition] = React.useTransition();
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  if (!activeTeam) {
-    return null
-  }
+  const handleSelectSite = (siteId: string) => {
+    // Si déjà sélectionné ou en cours de chargement, on ignore
+    const isCurrent =
+      (siteId === ALL_SITES_VALUE && currentSite.isAll) ||
+      (!currentSite.isAll && currentSite.id === siteId);
+
+    if (isCurrent || isPending) return;
+
+    setErrorMessage(null);
+    startTransition(async () => {
+      try {
+        const res = await setCurrentSite(siteId);
+        if (res.ok) {
+          router.refresh();
+        } else {
+          setErrorMessage(res.error ?? "Impossible de changer de site.");
+          console.error("Erreur changement de site:", res.error);
+        }
+      } catch (err) {
+        setErrorMessage("Une erreur inattendue est survenue.");
+        console.error("Erreur inattendue changement de site:", err);
+      }
+    });
+  };
+
+  const isAllActive = currentSite.isAll;
+  const activeNom = currentSite.nom;
 
   return (
     <SidebarMenu>
@@ -43,51 +87,95 @@ export function TeamSwitcher({
             render={
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                disabled={isPending}
+                aria-disabled={isPending}
+                aria-busy={isPending}
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <activeTeam.logo className="size-4" />
+            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              {isPending ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : isAllActive ? (
+                <Globe2Icon className="size-4" />
+              ) : (
+                <Building2Icon className="size-4" />
+              )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">{activeTeam.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{activeTeam.plan}</span>
+              <span className="truncate font-semibold text-foreground">
+                {isPending ? "Chargement..." : activeNom}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                {isPending
+                  ? "Changement de site..."
+                  : isAllActive
+                  ? "Vue cumulée"
+                  : "Site actif"}
+              </span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
+            <ChevronsUpDownIcon className="ml-auto size-4 shrink-0 text-muted-foreground" />
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg shadow-lg"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs text-muted-foreground">
+              <DropdownMenuLabel className="text-muted-foreground text-xs px-2 py-1.5 font-semibold">
                 Sites Cyber Cedest
               </DropdownMenuLabel>
-              {teams.map((team) => (
-                <DropdownMenuItem
-                  key={team.name}
-                  onClick={() => setActiveTeam(team)}
-                  className="gap-2 p-2"
+
+              {errorMessage && (
+                <p
+                  role="alert"
+                  className="mx-2 mb-1 rounded-md bg-destructive/10 px-2 py-1.5 text-xs text-destructive"
                 >
-                  <div className="flex size-6 items-center justify-center rounded-md border">
-                    <team.logo className="size-3.5 shrink-0" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-xs">{team.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{team.plan}</div>
-                  </div>
-                  {activeTeam.name === team.name && (
-                    <Check className="size-4 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+                  {errorMessage}
+                </p>
+              )}
+
+              {sites.map((site, index) => {
+                const isSelected =
+                  (site.id === ALL_SITES_VALUE && isAllActive) ||
+                  (!isAllActive && site.id === currentSite.id);
+
+                return (
+                  <DropdownMenuItem
+                    key={site.id}
+                    disabled={isPending}
+                    onClick={() => handleSelectSite(site.id)}
+                    className="flex items-center justify-between gap-2 p-2 cursor-pointer focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                        {site.id === ALL_SITES_VALUE ? (
+                          <Globe2Icon className="size-3.5 text-primary" />
+                        ) : (
+                          <Building2Icon className="size-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className="font-medium text-sm">{site.nom}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      {isSelected && (
+                        <CheckIcon className="size-4 text-primary" />
+                      )}
+                      <DropdownMenuShortcut className="text-xs text-muted-foreground">
+                        ⌘{index + 1}
+                      </DropdownMenuShortcut>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

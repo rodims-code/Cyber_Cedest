@@ -158,10 +158,8 @@ function RowAction({
   // Désactiver coupe l'accès de la personne : on demande confirmation
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="text-muted-foreground">
-          Désactiver
-        </Button>
+      <DialogTrigger render={<Button variant="ghost" className="text-muted-foreground" />}>
+        Désactiver
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -173,8 +171,8 @@ function RowAction({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+          <DialogClose render={<Button variant="outline" />}>
+            Annuler
           </DialogClose>
           <form action={toggleStaffUser} onSubmit={() => setOpen(false)}>
             {hiddenFields}
@@ -272,7 +270,7 @@ export function UsersTable({
           />
         </div>
 
-        <Select value={role} onValueChange={setRole}>
+        <Select value={role} onValueChange={(value) => setRole(value ?? "all")}>
           <SelectTrigger className="w-full md:w-44" aria-label="Filtrer par rôle">
             <SelectValue />
           </SelectTrigger>

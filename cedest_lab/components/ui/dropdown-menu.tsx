@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
@@ -56,11 +56,11 @@ function DropdownMenuLabel({
   className,
   inset,
   ...props
-}: React.ComponentProps<"div"> & {
+}: MenuPrimitive.GroupLabel.Props & {
   inset?: boolean
 }) {
   return (
-    <div
+    <MenuPrimitive.GroupLabel
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
@@ -169,7 +169,8 @@ function DropdownMenuCheckboxItem({
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
         <MenuPrimitive.CheckboxItemIndicator>
-          <CheckIcon />
+          <CheckIcon
+          />
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -209,7 +210,8 @@ function DropdownMenuRadioItem({
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <MenuPrimitive.RadioItemIndicator>
-          <CheckIcon />
+          <CheckIcon
+          />
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}

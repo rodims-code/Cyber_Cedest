@@ -1,3 +1,7 @@
+import { MonEspacePage } from "@/features/mon-espace/components/mon-espace-page";
+
+export const dynamic = "force-dynamic";
+
 export default function Page() {
-  return <h1 className="text-2xl font-bold">Mon espace</h1>
+  return <MonEspacePage role="technicien" />;
 }
