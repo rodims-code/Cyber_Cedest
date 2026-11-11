@@ -2,12 +2,15 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
 import { db } from "@/app/db";
-import { leadNotes, leads } from "@/app/db/schema";
-import { canAccessLead } from "@/lib/permissions";
+import { leads } from "@/app/db/schema";
 import { requireRole } from "@/lib/session";
 import { leadNoteSchema, leadSchema, leadStatusSchema } from "./schemas";
+import {
+  addLeadNoteForUser,
+  changeLeadStatusForUser,
+} from "./mutations";
+import { notifyLeadCreated } from "@/src/features/notifications/notify";
 
 const attemptsByIp = new Map<string, { count: number; resetAt: number }>();
 
@@ -54,6 +57,14 @@ export async function createLead(input: unknown) {
     })
     .returning({ id: leads.id });
 
+  await notifyLeadCreated({
+    id: lead.id,
+    type: data.type,
+    nom: data.nom,
+    telephone: data.telephone,
+    site: data.site || null,
+  });
+
   return { ok: true, id: lead.id };
 }
 
@@ -62,17 +73,7 @@ export async function updateLeadStatus(formData: FormData) {
   if (!parsed.success) return;
 
   const { role } = await requireRole();
-  const [lead] = await db
-    .select({ type: leads.type })
-    .from(leads)
-    .where(eq(leads.id, parsed.data.leadId));
-
-  if (!lead || !canAccessLead(role, lead.type)) return;
-
-  await db
-    .update(leads)
-    .set({ status: parsed.data.status, updatedAt: new Date() })
-    .where(and(eq(leads.id, parsed.data.leadId), eq(leads.type, lead.type)));
+  await changeLeadStatusForUser(parsed.data.leadId, parsed.data.status, role);
   revalidatePath("/dashboard", "layout");
 }
 
@@ -81,17 +82,11 @@ export async function addLeadNote(formData: FormData) {
   if (!parsed.success) return;
 
   const session = await requireRole();
-  const [lead] = await db
-    .select({ type: leads.type })
-    .from(leads)
-    .where(eq(leads.id, parsed.data.leadId));
-
-  if (!lead || !canAccessLead(session.role, lead.type)) return;
-
-  await db.insert(leadNotes).values({
-    leadId: parsed.data.leadId,
-    auteurId: session.user.id,
-    contenu: parsed.data.contenu,
-  });
+  await addLeadNoteForUser(
+    parsed.data.leadId,
+    parsed.data.contenu,
+    session.user.id,
+    session.role
+  );
   revalidatePath("/dashboard", "layout");
 }

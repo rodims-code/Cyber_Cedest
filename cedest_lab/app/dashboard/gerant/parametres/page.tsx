@@ -1,8 +1,9 @@
-import { SettingsIcon } from "lucide-react";
+import { SettingsIcon, BellRingIcon } from "lucide-react";
 
 import { MAX_SITES } from "@/config/site";
 import { getAllSitesWithUsage } from "@/features/sites/queries";
 import { SitesSettings } from "@/features/sites/components/sites-settings";
+import { TestNotificationButton } from "@/src/features/notifications/components/test-notification-button";
 import { requireRole } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,26 @@ export default async function ParametresPage() {
         activeCount={activeCount}
         maxSites={MAX_SITES}
       />
+
+      <section
+        aria-labelledby="notifications-test"
+        className="space-y-3 rounded-xl border bg-card p-4"
+      >
+        <div className="space-y-1">
+          <h2
+            id="notifications-test"
+            className="flex items-center gap-2 text-base font-semibold"
+          >
+            <BellRingIcon className="size-4 text-primary" aria-hidden />
+            Centre de notifications
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Vérifiez le parcours complet : toast, badge de la cloche, drawer
+            empilé et détail.
+          </p>
+        </div>
+        <TestNotificationButton />
+      </section>
     </section>
   );
 }

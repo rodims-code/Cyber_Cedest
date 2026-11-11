@@ -128,3 +128,34 @@ export function formatDuree(heures: number): string {
 export function isoDateToUtcNoon(dateIso: string): Date {
   return new Date(`${dateIso}T12:00:00.000Z`);
 }
+
+/** Temps relatif court en français, à partir d'un ISO (UTC en base). */
+export function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+
+  const diffMs = Math.max(0, Date.now() - then);
+  const minutes = Math.floor(diffMs / 60_000);
+
+  if (minutes < 1) return "à l'instant";
+  if (minutes < 60) return `il y a ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours === 1 ? "il y a 1 h" : `il y a ${hours} h`;
+
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "hier";
+  if (days < 7) return `il y a ${days} j`;
+
+  return formatDateCourteIso(getKinshasaDateIso(new Date(iso)));
+}
+
+/** Date à midi UTC → « aujourd'hui », « hier » ou la date courte. */
+export function kinshasaDayLabel(iso: string): string {
+  const day = getKinshasaDateIso(new Date(iso));
+  const today = getKinshasaDateIso();
+
+  if (day === today) return "Aujourd'hui";
+  if (day === addDaysIso(today, -1)) return "Hier";
+  return "Plus ancien";
+}

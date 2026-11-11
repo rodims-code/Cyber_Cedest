@@ -4,8 +4,8 @@ import { HeaderMenus } from "@/components/header-menus";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { NotificationCenter } from "@/src/features/notifications/components/notification-center";
 import type { Role } from "@/lib/permissions";
-import { DrawerNested } from "./DrawerNested";
 
 
 export function SiteHeader({
@@ -33,9 +33,7 @@ export function SiteHeader({
           </Badge>
         </div>
         <HeaderMenus role={role} />
-        <div>
-         <DrawerNested/>
-        </div>
+        <NotificationCenter />
       </div>
     </header>
   );
