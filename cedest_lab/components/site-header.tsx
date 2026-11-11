@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { Role } from "@/lib/permissions";
+import { DrawerNested } from "./DrawerNested";
+
 
 export function SiteHeader({
   siteNom,
@@ -31,6 +33,9 @@ export function SiteHeader({
           </Badge>
         </div>
         <HeaderMenus role={role} />
+        <div>
+         <DrawerNested/>
+        </div>
       </div>
     </header>
   );
