@@ -204,6 +204,7 @@ function WeekPlanning({
             variant="ghost"
             size="sm"
             className="text-muted-foreground"
+            nativeButton={false}
             render={<Link href={`${basePath}/planning`} />}
           >
             Planning complet

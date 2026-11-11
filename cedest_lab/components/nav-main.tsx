@@ -109,6 +109,7 @@ export function NavMain({
               size="icon"
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
+              nativeButton={false}
               render={<Link href={`${basePath}/demandes`} />}
             >
               <MailIcon />
