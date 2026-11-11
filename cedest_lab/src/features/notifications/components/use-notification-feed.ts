@@ -69,6 +69,13 @@ export function useNotificationFeed(options?: {
           headers: { Accept: "application/json" },
         });
 
+        // Session absente (déconnexion) : intervalle maximal, sans spam.
+        if (response.status === 401) {
+          backoffRef.current = MAX_INTERVAL_MS;
+          schedule();
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`Flux notifications : ${response.status}`);
         }

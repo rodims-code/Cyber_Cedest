@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangleIcon,
+  CalendarOffIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
   FingerprintIcon,
@@ -11,6 +12,7 @@ import {
   LogInIcon,
   LogOutIcon,
   MapPinIcon,
+  Settings2Icon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,23 +23,46 @@ import {
   punchOutAction,
   type PunchState,
 } from "@/features/pointage/actions";
-import type { PunchContextData } from "@/features/pointage/queries";
+import type {
+  PunchBlockedReason,
+  PunchContextData,
+} from "@/features/pointage/queries";
 import { diffHeures, formatDuree } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
+const BLOCKED_COPY: Record<
+  PunchBlockedReason,
+  { title: string; detail: string }
+> = {
+  gerant_all: {
+    title: "Choisissez un site précis",
+    detail:
+      "Sélectionnez KIMIALA ou SHELL dans le sélecteur de site, à gauche, pour pointer votre arrivée.",
+  },
+  aucun_poste: {
+    title: "Aucun poste aujourd'hui",
+    detail:
+      "Le pointage d'arrivée est indisponible tant qu'aucun poste ne vous est assigné. Voyez avec le gérant.",
+  },
+  site_indisponible: {
+    title: "Site indisponible",
+    detail:
+      "Le site de votre poste n'est pas disponible. Contactez le gérant.",
+  },
+};
+
 export function PunchCard({
   openPointage,
-  todayShift,
-  sites,
+  todaySite,
+  blockedReason,
 }: PunchContextData) {
   const router = useRouter();
-  const [selectedSite, setSelectedSite] = React.useState("");
   const [feedback, setFeedback] = React.useState<PunchState | null>(null);
   const [isPending, startTransition] = React.useTransition();
   const [now, setNow] = React.useState(() => Date.now());
 
   // Durée toujours affichée à partir de l'instant arrêté, rafraîchie toutes
-  // les 30 secondes tant qu'un pointage est ouvert.
+  // les 10 secondes tant qu'un pointage est ouvert.
   React.useEffect(() => {
     if (!openPointage) return;
 
@@ -52,19 +77,16 @@ export function PunchCard({
       ? diffHeures(arriveeDate, new Date(now))
       : 0;
 
-  const needsSiteChoice = !openPointage && !todayShift;
-  const canPunchIn =
-    !isPending && (Boolean(todayShift) || selectedSite.length > 0);
+  const blocked = !openPointage && blockedReason !== null;
+  const canPunchIn = !isPending && !openPointage && blockedReason === null;
+  const blockedCopy = blockedReason !== null ? BLOCKED_COPY[blockedReason] : null;
 
   const handlePunchIn = () => {
     setFeedback(null);
     startTransition(async () => {
-      const result = await punchInAction({
-        siteId: todayShift ? null : selectedSite || null,
-      });
+      const result = await punchInAction();
       setFeedback(result);
       if (result.ok) {
-        setSelectedSite("");
         router.refresh();
       }
     });
@@ -85,7 +107,8 @@ export function PunchCard({
     <Card
       className={cn(
         "border-primary/25 shadow-sm",
-        openPointage && "border-emerald-500/40 bg-emerald-500/5"
+        openPointage && "border-emerald-500/40 bg-emerald-500/5",
+        blocked && "border-destructive/25"
       )}
     >
       <CardContent className="space-y-4 p-4 sm:p-5">
@@ -94,8 +117,16 @@ export function PunchCard({
             <FingerprintIcon className="size-4 text-primary" aria-hidden />
             Mon pointage
           </p>
-          <Badge variant={openPointage ? "default" : "outline"}>
-            {openPointage ? "En poste" : "Pas pointé"}
+          <Badge
+            variant={
+              openPointage ? "default" : blocked ? "destructive" : "outline"
+            }
+          >
+            {openPointage
+              ? "En poste"
+              : blocked
+                ? "Indisponible"
+                : "Pas pointé"}
           </Badge>
         </div>
 
@@ -142,9 +173,46 @@ export function PunchCard({
               {isPending ? "Enregistrement…" : "Pointer le départ"}
             </Button>
           </>
+        ) : blocked && blockedCopy ? (
+          <>
+            <div
+              role="status"
+              className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-3"
+            >
+              {blockedReason === "gerant_all" ? (
+                <Settings2Icon
+                  className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+              ) : (
+                <CalendarOffIcon
+                  className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+              )}
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">
+                  {blockedCopy.title}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  {blockedCopy.detail}
+                </span>
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              size="lg"
+              className="h-14 w-full gap-2 text-base font-semibold"
+              disabled
+            >
+              <LogInIcon aria-hidden />
+              Pointer l&apos;arrivée
+            </Button>
+          </>
         ) : (
           <>
-            {todayShift ? (
+            {todaySite ? (
               <p className="flex items-start gap-2 text-sm text-muted-foreground">
                 <CalendarDaysIcon
                   className="mt-0.5 size-4 shrink-0"
@@ -153,41 +221,20 @@ export function PunchCard({
                 <span>
                   Poste prévu aujourd&apos;hui :{" "}
                   <span className="font-medium text-foreground">
-                    {todayShift.siteNom}
+                    {todaySite.siteNom}
                   </span>
                 </span>
               </p>
             ) : (
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="punch-site"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  Aucun poste prévu aujourd&apos;hui. Choisissez le site où vous
-                  commencez :
-                </label>
-                <select
-                  id="punch-site"
-                  value={selectedSite}
-                  onChange={(event) => {
-                    setSelectedSite(event.target.value);
-                    setFeedback(null);
-                  }}
-                  disabled={isPending || sites.length === 0}
-                  className="h-11 w-full rounded-md border bg-background px-3 text-sm"
-                >
-                  <option value="">
-                    {sites.length === 0
-                      ? "Aucun site ne vous est assigné"
-                      : "Choisir un site…"}
-                  </option>
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.nom}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <p className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CalendarDaysIcon
+                  className="mt-0.5 size-4 shrink-0"
+                  aria-hidden
+                />
+                <span>
+                  Prêt à pointer votre arrivée ?
+                </span>
+              </p>
             )}
 
             <Button
@@ -204,11 +251,6 @@ export function PunchCard({
               )}
               {isPending ? "Enregistrement…" : "Pointer l'arrivée"}
             </Button>
-            {needsSiteChoice && !selectedSite && sites.length > 0 && (
-              <p className="text-center text-xs text-muted-foreground">
-                Sélectionnez un site pour pointer.
-              </p>
-            )}
           </>
         )}
 

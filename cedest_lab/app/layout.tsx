@@ -25,6 +25,7 @@ export default function RootLayout({
     <html
       lang="fr"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${playwrite.variable} h-full antialiased font-sans`}
     >
       <body className="min-h-full bg-background text-foreground flex flex-col">

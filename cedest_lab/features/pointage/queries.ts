@@ -2,9 +2,9 @@ import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
 
 import { db } from "@/app/db";
 import { pointages, shifts, sites, user } from "@/app/db/schema";
-import { getActiveSiteById, getSitesForUser } from "@/features/sites/queries";
-import { getShiftForUserOnDate } from "@/features/planning/queries";
-import { ALL_SITES_LABEL, type SiteOption } from "@/lib/site-constants";
+import { getActiveSiteById } from "@/features/sites/queries";
+import { getCurrentSite } from "@/lib/current-site";
+import { ALL_SITES_LABEL } from "@/lib/site-constants";
 import type { Role } from "@/lib/permissions";
 import {
   diffHeures,
@@ -339,40 +339,55 @@ export async function getPointageStatsDuJour(siteId: string | null): Promise<{
   };
 }
 
+export type PunchBlockedReason =
+  | "gerant_all"
+  | "aucun_poste"
+  | "site_indisponible";
+
 export type PunchContextData = {
   openPointage: OpenPointage | null;
-  /** Site imposé par le planning du jour, ou null. */
-  todayShift: { siteId: string; siteNom: string } | null;
-  /** Sites actifs que l'utilisateur est autorisé à pointer. */
-  sites: SiteOption[];
+  /** Site du poste d'aujourd'hui (autres rôles), ou null pour le gérant. */
+  todaySite: { siteId: string; siteNom: string } | null;
+  /** Raison de blocage de l'arrivée, ou null si l'arrivée est possible. */
+  blockedReason: PunchBlockedReason | null;
 };
 
 /**
  * Tout ce dont la carte « Pointage » a besoin pour un utilisateur :
- * pointage ouvert, poste planifié aujourd'hui (site imposé) et sites
- * autorisés quand aucun poste n'est prévu.
+ * pointage ouvert et raison de blocage éventuelle, résolus côté serveur
+ * (planning du jour pour les non-gérants, site choisi pour le gérant).
  */
 export async function getPunchContextForUser(
   userId: string,
   role: Role
 ): Promise<PunchContextData> {
-  const todayIso = getKinshasaDateIso();
-
-  const [openPointage, plannedShift, allowedSites] = await Promise.all([
+  const [openPointage, resolved] = await Promise.all([
     getOpenPointageForUser(userId),
-    getShiftForUserOnDate(userId, todayIso),
-    getSitesForUser(userId, role),
+    getCurrentSite(),
   ]);
 
-  const plannedSite = plannedShift
-    ? await getActiveSiteById(plannedShift.siteId)
-    : null;
+  if (role === "gerant") {
+    return {
+      openPointage,
+      todaySite: null,
+      blockedReason: resolved.isAll ? "gerant_all" : null,
+    };
+  }
+
+  if (resolved.id) {
+    return {
+      openPointage,
+      todaySite: { siteId: resolved.id, siteNom: resolved.nom },
+      blockedReason: null,
+    };
+  }
 
   return {
     openPointage,
-    todayShift: plannedSite
-      ? { siteId: plannedSite.id, siteNom: plannedSite.nom }
-      : null,
-    sites: allowedSites.map((site) => ({ id: site.id, nom: site.nom })),
+    todaySite: null,
+    blockedReason:
+      resolved.reason === "site_indisponible"
+        ? "site_indisponible"
+        : "aucun_poste",
   };
 }

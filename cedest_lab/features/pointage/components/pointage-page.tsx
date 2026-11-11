@@ -12,7 +12,6 @@ import {
   PersonalPointageView,
   PointageView,
 } from "@/features/pointage/components/pointage-view";
-import { NoSiteAssigned } from "@/features/sites/components/no-site-assigned";
 
 export async function PointagePage({
   role,
@@ -21,15 +20,11 @@ export async function PointagePage({
 }) {
   const session = await requireRole([role]);
 
-  const currentSite = await getCurrentSite();
-  if (!currentSite.isAll && !currentSite.id) {
-    return <NoSiteAssigned />;
-  }
-
   const punchContext = await getPunchContextForUser(session.user.id, role);
   const punchCard = <PunchCard {...punchContext} />;
 
   if (role === "gerant") {
+    const currentSite = await getCurrentSite();
     const data = await getPointagesDuJour(
       currentSite.isAll ? null : currentSite.id
     );

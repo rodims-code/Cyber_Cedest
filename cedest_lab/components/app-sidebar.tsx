@@ -65,6 +65,7 @@ export function AppSidebar({
           canAddSite={canAddSite}
           siteCount={siteCount}
           maxSites={maxSites}
+          role={role}
         />
       </SidebarHeader>
 

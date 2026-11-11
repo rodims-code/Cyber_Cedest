@@ -529,6 +529,7 @@ export function PlanningView({
           <Button
             type="button"
             variant="outline"
+            nativeButton={false}
             render={
               <a
                 href={`/dashboard/gerant/planning/export?semaine=${data.weekStart}`}

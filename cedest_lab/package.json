@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/features/planning/generator.test.ts",
+    "test": "tsx --test src/features/planning/generator.test.ts src/lib/current-site.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx app/db/seed.ts",

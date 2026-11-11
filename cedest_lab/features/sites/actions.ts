@@ -32,6 +32,16 @@ export async function setCurrentSite(siteId: string): Promise<SetSiteResult> {
     return { ok: false, error: "Rôle non autorisé" };
   }
 
+  // Règle métier : seul le gérant choisit son site ; les autres rôles
+  // suivent le planning du jour. Un cookie falsifié ne change rien.
+  if (role !== "gerant") {
+    return {
+      ok: false,
+      error:
+        "Votre site est imposé par votre poste du jour. Le sélecteur de site est réservé au gérant.",
+    };
+  }
+
   const normalizedSiteId = typeof siteId === "string" ? siteId.trim() : "";
   if (!normalizedSiteId) {
     return { ok: false, error: "Site invalide." };

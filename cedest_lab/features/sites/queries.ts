@@ -75,11 +75,10 @@ export async function getActiveSiteById(
  * Récupère les sites autorisés pour un utilisateur donné selon son rôle.
  * - Le gérant a accès à tous les sites actifs.
  * - L'opérateur et le technicien n'ont accès qu'aux sites qui leur sont assignés
- *   dans user_sites.
+ *   dans `user_sites` ; aucun repli silencieux vers un autre site.
  *
- * Repli de démarrage : tant qu'aucune interface d'attribution n'existe, un
- * utilisateur sans assignation obtient le premier site actif (KIMIALA). Ce repli
- * ne lui donne jamais accès à un autre site et ne contourne donc pas le cookie.
+ * Note : pour les non-gérants, le site actif du dashboard est dérivé du
+ * planning du jour (voir `getCurrentSite()`), pas de cette liste.
  */
 export async function getSitesForUser(
   userId: string,
@@ -97,11 +96,6 @@ export async function getSitesForUser(
     .where(eq(userSites.userId, userId));
 
   const allowedIds = new Set(assignments.map((assignment) => assignment.siteId));
-  const userAllowedSites = activeSites.filter((site) => allowedIds.has(site.id));
 
-  if (userAllowedSites.length === 0 && activeSites.length > 0) {
-    return [activeSites[0]];
-  }
-
-  return userAllowedSites;
+  return activeSites.filter((site) => allowedIds.has(site.id));
 }

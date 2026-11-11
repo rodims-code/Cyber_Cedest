@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Building2Icon,
+  CalendarOffIcon,
   CheckIcon,
   ChevronsUpDownIcon,
   Globe2Icon,
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { setCurrentSite } from "@/features/sites/actions";
 import { ALL_SITES_VALUE } from "@/lib/site-constants";
+import type { Role } from "@/lib/permissions";
 
 export type SiteOption = {
   id: string; // UUID ou "ALL"
@@ -49,6 +51,7 @@ export function TeamSwitcher({
   canAddSite = false,
   siteCount = 0,
   maxSites = 2,
+  role = "gerant",
 }: {
   sites: SiteOption[];
   currentSite: CurrentSiteInfo;
@@ -56,6 +59,7 @@ export function TeamSwitcher({
   canAddSite?: boolean;
   siteCount?: number;
   maxSites?: number;
+  role?: Role;
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
@@ -89,6 +93,44 @@ export function TeamSwitcher({
 
   const isAllActive = currentSite.isAll;
   const activeNom = currentSite.nom;
+
+  // Autres rôles : bloc d'information en lecture seule, aucun moyen de
+  // changer de site (le planning du jour impose).
+  if (role !== "gerant") {
+    const assigned = Boolean(currentSite.id);
+
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div
+            className="flex items-center gap-2 rounded-lg px-2 py-2"
+            role="status"
+            aria-label={
+              assigned
+                ? `Votre poste aujourd'hui : ${currentSite.nom}`
+                : "Aucun poste aujourd'hui"
+            }
+          >
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary/15 text-sidebar-primary">
+              {assigned ? (
+                <Building2Icon className="size-4" aria-hidden />
+              ) : (
+                <CalendarOffIcon className="size-4" aria-hidden />
+              )}
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold text-foreground">
+                {assigned ? currentSite.nom : "Aucun poste aujourd'hui"}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                {assigned ? "Votre poste aujourd'hui" : "Voir avec le gérant"}
+              </span>
+            </div>
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>

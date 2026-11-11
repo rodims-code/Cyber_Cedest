@@ -6,11 +6,10 @@ import { headers } from "next/headers";
 
 import { db } from "@/app/db";
 import { pointages, sites } from "@/app/db/schema";
-import { getShiftForUserOnDate } from "@/features/planning/queries";
-import { punchInSchema } from "@/features/pointage/schemas";
-import { getActiveSiteById, getSitesForUser } from "@/features/sites/queries";
+import { getActiveSiteById } from "@/features/sites/queries";
 import { canPunchFromHere } from "@/lib/pointage-policy";
 import { requireRole } from "@/lib/session";
+import { getCurrentSite } from "@/lib/current-site";
 import {
   diffHeures,
   formatDuree,
@@ -48,20 +47,15 @@ async function getPunchContext() {
  * Pointage d'arrivée.
  *
  * - L'heure vient exclusivement de `new Date()` côté serveur.
- * - Le site du jour est imposé par le planning quand un poste existe.
- * - Sinon, l'employé choisit un site actif auquel il est autorisé.
+ * - Le site est résolu côté serveur via `getCurrentSite()` : le planning
+ *   pour opérateur/technicien, le site choisi dans le sélecteur pour le
+ *   gérant. Aucun champ envoyé par le client ne peut définir le site.
+ * - Sans site actif (aucun poste aujourd'hui, ou vue cumulée pour le
+ *   gérant), l'arrivée est refusée.
  * - Un seul pointage peut être ouvert à la fois (index partiel en base).
  */
-export async function punchInAction(input: unknown): Promise<PunchState> {
+export async function punchInAction(): Promise<PunchState> {
   const session = await requireRole([...PUNCH_ROLES]);
-
-  const parsed = punchInSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: parsed.error.issues[0]?.message ?? "Site invalide.",
-    };
-  }
 
   const now = new Date();
   const todayIso = getKinshasaDateIso(now);
@@ -97,37 +91,17 @@ export async function punchInAction(input: unknown): Promise<PunchState> {
     };
   }
 
-  const plannedShift = await getShiftForUserOnDate(session.user.id, todayIso);
-  let site = plannedShift
-    ? await getActiveSiteById(plannedShift.siteId)
-    : null;
-
-  if (!site) {
-    const requested = parsed.data.siteId;
-
-    if (!requested) {
-      return {
-        ok: false,
-        error:
-          "Aucun poste prévu aujourd'hui. Choisissez le site où vous commencez.",
-      };
-    }
-
-    const allowedSites = await getSitesForUser(session.user.id, session.role);
-    if (!allowedSites.some((row) => row.id === requested)) {
-      return {
-        ok: false,
-        error: "Vous n'êtes pas autorisé à pointer sur ce site.",
-      };
-    }
-
-    site = await getActiveSiteById(requested);
-  }
+  // Source unique de vérité : résolution côté serveur, jamais le client.
+  const resolved = await getCurrentSite();
+  const site = resolved.id ? await getActiveSiteById(resolved.id) : null;
 
   if (!site) {
     return {
       ok: false,
-      error: "Ce site n'existe plus ou a été désactivé. Rechargez la page.",
+      error:
+        session.role === "gerant"
+          ? "Choisissez un site précis dans le sélecteur pour pointer votre arrivée."
+          : "Aucun poste aujourd'hui. Vous ne pouvez pas pointer.",
     };
   }
 

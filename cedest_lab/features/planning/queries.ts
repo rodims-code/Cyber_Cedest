@@ -3,6 +3,7 @@ import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
 import { db } from "@/app/db";
 import { shifts, sites, user } from "@/app/db/schema";
 import { getAllActiveSites } from "@/features/sites/queries";
+import type { ShiftSite } from "@/src/lib/current-site-resolve";
 import {
   getPreviousWeekStartIso,
   getWorkWeekDays,
@@ -166,4 +167,33 @@ export async function getShiftForUserOnDate(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+/**
+ * Poste d'aujourd'hui d'un employé avec l'état actif de son site.
+ * Sert à résoudre le site actif des non-gérants (source unique : le planning).
+ */
+export async function getTodayShiftSite(
+  userId: string,
+  dateIso: string
+): Promise<ShiftSite | null> {
+  const rows = await db
+    .select({
+      siteId: shifts.siteId,
+      siteNom: sites.nom,
+      actif: sites.actif,
+    })
+    .from(shifts)
+    .innerJoin(sites, eq(shifts.siteId, sites.id))
+    .where(and(eq(shifts.userId, userId), eq(shifts.date, dateIso)))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    siteId: row.siteId,
+    siteNom: row.siteNom,
+    siteActif: row.actif,
+  };
 }

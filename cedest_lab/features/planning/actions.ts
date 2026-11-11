@@ -16,6 +16,9 @@ export type SavePlanningState = {
 };
 
 function revalidatePlanning() {
+  // Rafraîchit notamment la sidebar (site actif des non-gérants, dérivé
+  // du planning du jour) pour tous les utilisateurs.
+  revalidatePath("/", "layout");
   revalidatePath("/dashboard/gerant/planning");
   revalidatePath("/dashboard/gerant");
   revalidatePath("/dashboard/gerant/mon-espace");

@@ -67,8 +67,8 @@ export function NavMain({
                 <span>Création rapide</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuLabel>Créer rapidement</DropdownMenuLabel>
                 <DropdownMenuGroup>
+                  <DropdownMenuLabel>Créer rapidement</DropdownMenuLabel>
                   <DropdownMenuItem
                     onClick={() => router.push(`${basePath}/demandes`)}
                   >

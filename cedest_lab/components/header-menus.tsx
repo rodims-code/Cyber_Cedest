@@ -239,11 +239,11 @@ export function HeaderMenus({ role }: { role: Role }) {
         <DropdownMenuContent align="end" className="w-56">
           {isGerant && (
             <>
-              <DropdownMenuLabel className="flex items-center gap-2">
-                <CalendarDaysIcon className="size-4" aria-hidden />
-                Planning
-              </DropdownMenuLabel>
               <DropdownMenuGroup>
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <CalendarDaysIcon className="size-4" aria-hidden />
+                  Planning
+                </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => openPlanning("generer")}>
                   <SparklesIcon />
                   Générer la semaine
@@ -261,8 +261,8 @@ export function HeaderMenus({ role }: { role: Role }) {
             </>
           )}
 
-          <DropdownMenuLabel>Pointage</DropdownMenuLabel>
           <DropdownMenuGroup>
+            <DropdownMenuLabel>Pointage</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => router.push(`${basePath}/pointage`)}>
               <ClockIcon />
               Ouvrir le pointage
@@ -276,13 +276,13 @@ export function HeaderMenus({ role }: { role: Role }) {
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuLabel>Affichage</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={themeValue}
             onValueChange={(value) => {
               if (value) setTheme(value);
             }}
           >
+            <DropdownMenuLabel>Affichage</DropdownMenuLabel>
             <DropdownMenuRadioItem value="light">
               <SunIcon />
               Clair
