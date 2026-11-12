@@ -45,6 +45,7 @@ export function AppSidebar({
   canAddSite = false,
   siteCount = 0,
   maxSites = 2,
+  className,
   ...props
 }: AppSidebarProps) {
   const { data: session } = authClient.useSession();
@@ -56,7 +57,16 @@ export function AppSidebar({
     pathname === url || pathname.startsWith(`${url}/`);
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar
+      collapsible="icon"
+      className={[
+        className,
+        "[&_[data-slot=sidebar-inner]]:!bg-transparent",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      {...props}
+    >
       <SidebarHeader>
         <TeamSwitcher
           sites={sites}

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { LoginForm } from "@/components/login-form"
-import GhostFibers from "@/components/GhostFibers"
-import { GalleryVerticalEndIcon } from "lucide-react"
+import { LoginForm } from "@/components/login-form";
+import GhostFibers from "@/components/GhostFibers";
+import { GalleryVerticalEndIcon } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -11,9 +11,7 @@ export default function LoginPage() {
         className="pointer-events-none absolute inset-0 z-0"
         aria-hidden="true"
       >
-        <GhostFibers
-          className="h-full w-full"
-        />
+        <GhostFibers className="h-full w-full" />
       </div>
       <div className="relative z-10 flex flex-col gap-4 bg-background p-6 md:p-10 lg:bg-transparent lg:bg-gradient-to-r lg:from-background lg:via-background/90 lg:to-transparent">
         <div className="flex justify-center gap-2 md:justify-start">
@@ -38,5 +36,5 @@ export default function LoginPage() {
         />
       </div>
     </div>
-  )
+  );
 }
