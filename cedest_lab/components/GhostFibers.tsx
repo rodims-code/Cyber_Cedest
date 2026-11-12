@@ -84,6 +84,7 @@ type Settings = {
   pulseOnClick: boolean;
   intro: boolean;
   lightMode: boolean;
+  lightModeAuto: boolean;
   paused: boolean;
   dpr?: number;
 };
@@ -632,7 +633,7 @@ const applyMat3 = (m: number[], v: number[]) => [
 ];
 
 const GhostFibers = ({
-  glowColor = '#8b5cf6',
+  glowColor = 'var(--primary)',
   lineColor,
   secondaryColor,
   gradient = 'depth',
@@ -666,7 +667,7 @@ const GhostFibers = ({
   mouseStrength = 1,
   pulseOnClick = true,
   intro = true,
-  lightMode = false,
+  lightMode,
   paused = false,
   dpr,
   ...rest
@@ -709,12 +710,19 @@ const GhostFibers = ({
     mouseStrength: Math.max(0, mouseStrength),
     pulseOnClick,
     intro,
-    lightMode,
+    lightMode:
+      lightMode ??
+      (typeof document !== 'undefined' &&
+        !document.documentElement.classList.contains('dark')),
+    lightModeAuto: lightMode === undefined,
     paused,
     dpr
   };
   const settingsRef = useRef(settings);
-  settingsRef.current = settings;
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -763,6 +771,9 @@ const GhostFibers = ({
     probe.width = 1;
     probe.height = 1;
     const probeContext = probe.getContext('2d', { willReadFrequently: true });
+    const colorProbe = document.createElement('span');
+    colorProbe.style.display = 'none';
+    container.appendChild(colorProbe);
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const state = {
       time: 0,
@@ -784,6 +795,18 @@ const GhostFibers = ({
       pulse: { s: 0, age: 9, strength: 0, ribbon: 0 },
       camera: null as Camera | null
     };
+    const themeObserver = new MutationObserver(() => {
+      if (settingsRef.current.lightModeAuto) {
+        settingsRef.current.lightMode =
+          !document.documentElement.classList.contains('dark');
+      }
+      state.colorKey = '';
+      wakeRef.current?.();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'style', 'data-theme']
+    });
     let raf = 0;
     let last = 0;
     let visible = true;
@@ -792,9 +815,12 @@ const GhostFibers = ({
     const toRgb = (value: string, fallback: number[]): number[] => {
       if (!probeContext || !value) return fallback;
       const css = /^[0-9a-f]{3,8}$/i.test(value) ? `#${value}` : value;
+      colorProbe.style.color = '';
+      colorProbe.style.color = css;
+      const resolvedColor = getComputedStyle(colorProbe).color;
       probeContext.clearRect(0, 0, 1, 1);
       probeContext.fillStyle = '#000000';
-      probeContext.fillStyle = css;
+      probeContext.fillStyle = resolvedColor;
       probeContext.fillRect(0, 0, 1, 1);
       const [r, g, b] = probeContext.getImageData(0, 0, 1, 1).data;
       return [r / 255, g / 255, b / 255];
@@ -1158,6 +1184,8 @@ const GhostFibers = ({
       alive = false;
       cancelAnimationFrame(raf);
       wakeRef.current = null;
+      themeObserver.disconnect();
+      colorProbe.remove();
       resizeObserver.disconnect();
       intersection.disconnect();
       window.removeEventListener('pointermove', onPointerMove);

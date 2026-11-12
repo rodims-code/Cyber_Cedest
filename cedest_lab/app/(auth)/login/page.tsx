@@ -6,17 +6,16 @@ import { GalleryVerticalEndIcon } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="relative isolate grid min-h-svh overflow-hidden bg-slate-950 lg:grid-cols-2">
+    <div className="relative isolate grid min-h-svh overflow-hidden bg-background lg:grid-cols-2">
       <div
         className="pointer-events-none absolute inset-0 z-0"
         aria-hidden="true"
       >
         <GhostFibers
           className="h-full w-full"
-          glowColor="#c084fc"
         />
       </div>
-      <div className="relative z-10 flex flex-col gap-4 bg-slate-950/55 p-6 backdrop-blur-[2px] md:p-10">
+      <div className="relative z-10 flex flex-col gap-4 bg-background/55 p-6 backdrop-blur-[2px] md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium uppercase">
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -31,7 +30,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="relative z-10 m-6 hidden overflow-hidden rounded-lg bg-muted bg-center md:m-10 lg:block">
+      <div className="relative z-10 m-6 hidden overflow-hidden rounded-lg bg-center md:m-10 lg:block">
         <img
           src="/images/logo.png"
           alt=""
