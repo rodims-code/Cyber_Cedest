@@ -15,7 +15,7 @@ export default function LoginPage() {
           className="h-full w-full"
         />
       </div>
-      <div className="relative z-10 flex flex-col gap-4 bg-background/55 p-6 backdrop-blur-[2px] md:p-10">
+      <div className="relative z-10 flex flex-col gap-4 bg-background p-6 md:p-10 lg:bg-transparent lg:bg-gradient-to-r lg:from-background lg:via-background/90 lg:to-transparent">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium uppercase">
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -34,7 +34,7 @@ export default function LoginPage() {
         <img
           src="/images/logo.png"
           alt=""
-          className="absolute inset-0 h-full w-full rounded-lg object-cover"
+          className="absolute inset-0 h-full w-full rounded-lg object-contain p-2 md:p-6"
         />
       </div>
     </div>
