@@ -59,7 +59,7 @@ export function NavMain({
                 render={
                   <SidebarMenuButton
                     tooltip="Création rapide"
-                    className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
+                    className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:!bg-primary/70 hover:backdrop-blur-xl hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
                   />
                 }
               >
@@ -107,7 +107,7 @@ export function NavMain({
 
             <Button
               size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
+              className="size-8 transition-[background-color,backdrop-filter] group-data-[collapsible=icon]:opacity-0 hover:!bg-background/55 hover:backdrop-blur-xl"
               variant="outline"
               nativeButton={false}
               render={<Link href={`${basePath}/demandes`} />}
