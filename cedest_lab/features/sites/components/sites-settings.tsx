@@ -14,6 +14,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -68,8 +69,14 @@ function CreateSiteForm({
   const atLimit = activeCount >= maxSites;
 
   React.useEffect(() => {
-    if (state.ok) formRef.current?.reset();
-  }, [state.ok]);
+    if (state.ok) {
+      formRef.current?.reset();
+      toast.success(state.message ?? "Site créé.");
+    }
+    if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state.ok, state.error]);
 
   return (
     <Card>
@@ -144,6 +151,24 @@ function SiteRow({
 
   const isLastActive = site.actif && activeCount <= 1;
   const cannotReactivate = !site.actif && activeCount >= maxSites;
+
+  React.useEffect(() => {
+    if (renameState.ok) {
+      toast.success(renameState.message ?? "Site renommé.");
+    }
+    if (renameState.error) {
+      toast.error(renameState.error);
+    }
+  }, [renameState.ok, renameState.error]);
+
+  React.useEffect(() => {
+    if (toggleState.ok) {
+      toast.success(toggleState.message ?? "Site mis à jour.");
+    }
+    if (toggleState.error) {
+      toast.error(toggleState.error);
+    }
+  }, [toggleState.ok, toggleState.error]);
 
   return (
     <Card className={cn(!site.actif && "opacity-80")}>

@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Lock, Mail, LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -34,6 +35,7 @@ export function LoginForm({
       if (result.error) {
         setError("Identifiants incorrects ou compte suspendu.");
         setLoading(false);
+        toast.error("Identifiants incorrects ou compte suspendu.");
       } else {
         const userRole = (result.data?.user as { role?: string } | undefined)
           ?.role;
@@ -42,10 +44,12 @@ export function LoginForm({
         } else {
           router.push("/dashboard");
         }
+        toast.success("Connexion réussie.");
       }
     } catch {
       setError("Impossible de contacter le serveur d'authentification.");
       setLoading(false);
+      toast.error("Impossible de contacter le serveur d'authentification.");
     }
   }
 

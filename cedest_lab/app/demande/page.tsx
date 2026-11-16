@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { createLead } from "@/features/leads/actions";
+import { toast } from "sonner";
 import {
   Send,
   CheckCircle2,
@@ -50,8 +51,10 @@ function DemandeForm() {
         telephone: String(raw.telephone ?? ""),
       });
       event.currentTarget.reset();
+      toast.success("Demande envoyée.");
     } else {
       setErrorMessage(result.error ?? "Une erreur est survenue lors de l'envoi.");
+      toast.error(result.error ?? "Une erreur est survenue lors de l'envoi.");
     }
   }
 

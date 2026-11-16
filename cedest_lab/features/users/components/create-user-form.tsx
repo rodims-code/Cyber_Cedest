@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { createStaffUser, CreateUserState } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +17,12 @@ export function CreateUserForm() {
   useEffect(() => {
     if (state.ok) {
       formRef.current?.reset();
+      toast.success("Compte créé.");
     }
-  }, [state.ok]);
+    if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state.ok, state.error]);
 
   return (
     <div className="rounded-xl border bg-card p-6 shadow-sm">

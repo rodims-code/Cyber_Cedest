@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 import {
   punchInAction,
   punchOutAction,
@@ -87,7 +88,10 @@ export function PunchCard({
       const result = await punchInAction();
       setFeedback(result);
       if (result.ok) {
+        toast.success(result.message ?? "Arrivée enregistrée.");
         router.refresh();
+      } else {
+        toast.error(result.error ?? "L'arrivée n'a pas pu être enregistrée.");
       }
     });
   };
@@ -98,7 +102,10 @@ export function PunchCard({
       const result = await punchOutAction();
       setFeedback(result);
       if (result.ok) {
+        toast.success(result.message ?? "Départ enregistré.");
         router.refresh();
+      } else {
+        toast.error(result.error ?? "Le départ n'a pas pu être enregistré.");
       }
     });
   };

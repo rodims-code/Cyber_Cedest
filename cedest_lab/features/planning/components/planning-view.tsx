@@ -18,6 +18,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -387,6 +388,11 @@ export function PlanningView({
             text: "Proposition incomplète : consultez les avertissements.",
           }
     );
+    if (result.complete) {
+      toast.success("Proposition générée.");
+    } else {
+      toast.error("Proposition incomplète : consultez les avertissements.");
+    }
   };
 
   const handleCopy = () => {
@@ -412,6 +418,13 @@ export function PlanningView({
           ? `Semaine copiée, ${copied.skipped} poste(s) ignoré(s) car l'employé ou le site est inactif.`
           : "Semaine précédente copiée. Vérifiez puis enregistrez.",
     });
+    if (copied.skipped > 0) {
+      toast.error(
+        `Semaine copiée, ${copied.skipped} poste(s) ignoré(s) car l'employé ou le site est inactif.`
+      );
+    } else {
+      toast.success("Semaine précédente copiée.");
+    }
   };
 
   const handleSave = () => {
@@ -428,12 +441,14 @@ export function PlanningView({
           type: "success",
           text: result.message ?? "Planning enregistré.",
         });
+        toast.success(result.message ?? "Planning enregistré.");
         router.refresh();
       } else {
         setFeedback({
           type: "error",
           text: result.error ?? "L'enregistrement a échoué.",
         });
+        toast.error(result.error ?? "L'enregistrement a échoué.");
       }
     });
   };
