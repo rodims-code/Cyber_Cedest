@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
 import { user, account, sites, userSites, shifts } from "./schema";
 import { getKinshasaDateIso } from "../../src/lib/time";
@@ -124,11 +124,11 @@ async function main() {
     }
 
     // --- Opérateur Démo ---
-    let operateur = await db
+    const operateurRows = await db
       .select({ id: user.id })
       .from(user)
-      .where(eq(user.email, "operateur.demo@cedest.cd"))
-      .then((rows) => rows[0]);
+      .where(eq(user.email, "operateur.demo@cedest.cd"));
+    let operateur = operateurRows[0];
 
     if (!operateur) {
       const id = crypto.randomUUID();
@@ -160,23 +160,27 @@ async function main() {
       console.log("⏭️  Opérateur démo existant : operateur.demo@cedest.cd");
     }
 
-    const opKimiExists = await db
+    const opKimiRows = await db
       .select()
       .from(userSites)
-      .where(eq(userSites.userId, operateur.id))
-      .where(eq(userSites.siteId, kimialaId))
-      .then((rows) => rows.length > 0);
+      .where(
+        and(
+          eq(userSites.userId, operateur.id),
+          eq(userSites.siteId, kimialaId)
+        )
+      );
+    const opKimiExists = opKimiRows.length > 0;
     if (!opKimiExists) {
       await db.insert(userSites).values({ userId: operateur.id, siteId: kimialaId });
       console.log("✅ Opérateur démo affecté à KIMIALA");
     }
 
     // --- Technicien Démo ---
-    let technicien = await db
+    const technicienRows = await db
       .select({ id: user.id })
       .from(user)
-      .where(eq(user.email, "technicien.demo@cedest.cd"))
-      .then((rows) => rows[0]);
+      .where(eq(user.email, "technicien.demo@cedest.cd"));
+    let technicien = technicienRows[0];
 
     if (!technicien) {
       const id = crypto.randomUUID();
@@ -210,12 +214,13 @@ async function main() {
 
     // ---------- 5. Shift du jour pour l'opérateur démo sur KIMIALA ----------
     const today = getKinshasaDateIso();
-    const existingShift = await db
+    const existingShiftRows = await db
       .select()
       .from(shifts)
-      .where(eq(shifts.date, today))
-      .where(eq(shifts.userId, operateur.id))
-      .then((rows) => rows.length > 0);
+      .where(
+        and(eq(shifts.date, today), eq(shifts.userId, operateur.id))
+      );
+    const existingShift = existingShiftRows.length > 0;
 
     if (!existingShift) {
       await db.insert(shifts).values({
