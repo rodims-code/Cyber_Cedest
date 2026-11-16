@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { redirect } from "next/navigation";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandPalette } from "@/components/command-palette";
@@ -18,8 +19,11 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { sites, currentSite, canSelectAll, role } = await getSelectableSites();
+  if (!role) {
+    redirect("/login");
+  }
 
-  const effectiveRole = role ?? "operateur";
+  const effectiveRole = role;
   const siteCount = sites.length - (canSelectAll ? 1 : 0);
   const canAddSite = role === "gerant" && siteCount < MAX_SITES;
 
