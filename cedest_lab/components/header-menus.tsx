@@ -35,6 +35,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -46,10 +47,15 @@ import {
   MenubarRadioGroup,
   MenubarRadioItem,
   MenubarSeparator,
+  MenubarCheckboxItem,
   MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import type { Role } from "@/lib/permissions";
+import {
+  setEffects,
+  EFFECTS_CHANGE_EVENT,
+} from "@/components/EffectPreference";
 
 function ShortcutsDialog({
   open,
@@ -104,6 +110,51 @@ export function HeaderMenus({ role }: { role: Role }) {
   const themeValue = theme ?? "system";
   const isGerant = role === "gerant";
   const basePath = `/dashboard/${role}`;
+
+  // Source de vérité côté client : l'attribut data-effects sur <html>, posé
+  // par le serveur au rendu et par setEffects() à chaque clic.
+  const [effectsOn, setEffectsOn] = React.useState<boolean>(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.dataset.effects !== "off";
+    }
+    return true;
+  });
+
+  // Resynchronise l'état du menu si l'attribut change (clic, initializer ou autre onglet)
+  React.useEffect(() => {
+    const update = () => {
+      if (typeof document !== "undefined") {
+        setEffectsOn(document.documentElement.dataset.effects !== "off");
+      }
+    };
+    update();
+
+    const observer = new MutationObserver(() => update());
+    if (typeof document !== "undefined") {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-effects"],
+      });
+    }
+
+    const handleCustomChange = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setEffectsOn(detail !== "off");
+    };
+    window.addEventListener(EFFECTS_CHANGE_EVENT, handleCustomChange);
+    document.addEventListener("visibilitychange", update);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener(EFFECTS_CHANGE_EVENT, handleCustomChange);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+
+  const handleEffectsChange = (checked: boolean) => {
+    setEffects(checked ? "on" : "off");
+    setEffectsOn(checked);
+  };
 
   // « ? » ouvre le dialogue des raccourcis, hors champs de saisie.
   React.useEffect(() => {
@@ -206,6 +257,27 @@ export function HeaderMenus({ role }: { role: Role }) {
                 Système
               </MenubarRadioItem>
             </MenubarRadioGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarCheckboxItem
+                checked={effectsOn}
+                closeOnClick={false}
+                onCheckedChange={(checked) => handleEffectsChange(checked)}
+              >
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">Blur effect</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      {effectsOn ? "Activé" : "Désactivé"}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    Fond animé et flou. Désactivez-le pour alléger
+                    l&apos;affichage.
+                  </span>
+                </div>
+              </MenubarCheckboxItem>
+            </MenubarGroup>
           </MenubarContent>
         </MenubarMenu>
 
@@ -298,6 +370,24 @@ export function HeaderMenus({ role }: { role: Role }) {
           </DropdownMenuRadioGroup>
 
           <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem
+            checked={effectsOn}
+            closeOnClick={false}
+            onCheckedChange={(checked) => handleEffectsChange(checked)}
+          >
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Blur effect</span>
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  {effectsOn ? "Activé" : "Désactivé"}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Fond animé et flou. Désactivez-le pour alléger
+                l&apos;affichage.
+              </span>
+            </div>
+          </DropdownMenuCheckboxItem>
           <DropdownMenuItem onClick={() => setShortcutsOpen(true)}>
             <HelpCircleIcon />
             Raccourcis clavier
