@@ -3,7 +3,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isRole, Role } from "@/lib/permissions";
-export async function getSession() { return auth.api.getSession({ headers: await headers() }); }
+export async function getSession() {
+  try {
+    return await auth.api.getSession({ headers: await headers() });
+  } catch {
+    // DB indisponible, session expirée ou toute autre erreur réseau :
+    // on retourne null pour permettre une redirection propre vers /login.
+    return null;
+  }
+}
 export async function requireSession() {
   const session = await getSession();
   if (!session) redirect("/login");
