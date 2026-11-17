@@ -1,0 +1,471 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "f15a8442-d95c-4714-842f-c7a8bbc1bfdd",
+  "prevIds": [
+    "b83c22fd-f27c-4570-9a1b-e61d0c4cb654"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "caisse_statut"
+      ],
+      "writes": [
+        "s|enum|public.caisse_statut",
+        "n|enum|public.caisse_statut",
+        "e|enum|public.caisse_statut",
+        "n|type|public.caisse_statut"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "caisse_type"
+      ],
+      "writes": [
+        "s|enum|public.caisse_type",
+        "n|enum|public.caisse_type",
+        "e|enum|public.caisse_type",
+        "n|type|public.caisse_type"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "caisse"
+      ],
+      "writes": [
+        "s|tbl|public.caisse",
+        "n|tbl|public.caisse",
+        "e|tbl|public.caisse",
+        "n|rel|public.caisse",
+        "n|type|public.caisse",
+        "n|rel|public.caisse_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.caisse_type",
+        "n|enum|public.caisse_statut"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "caisse"
+      ],
+      "writes": [
+        "s|fk|public.caisse.caisse_site_id_sites_id_fkey",
+        "n|fk|public.caisse.caisse_site_id_sites_id_fkey",
+        "e|fk|public.caisse.caisse_site_id_sites_id_fkey",
+        "n|con|public.caisse.caisse_site_id_sites_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.caisse",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.caisse.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "caisse"
+      ],
+      "writes": [
+        "s|fk|public.caisse.caisse_saisi_par_user_id_fkey",
+        "n|fk|public.caisse.caisse_saisi_par_user_id_fkey",
+        "e|fk|public.caisse.caisse_saisi_par_user_id_fkey",
+        "n|con|public.caisse.caisse_saisi_par_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.caisse",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.caisse.saisi_par",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "caisse"
+      ],
+      "writes": [
+        "s|fk|public.caisse.caisse_annule_par_user_id_fkey",
+        "n|fk|public.caisse.caisse_annule_par_user_id_fkey",
+        "e|fk|public.caisse.caisse_annule_par_user_id_fkey",
+        "n|con|public.caisse.caisse_annule_par_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.caisse",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.caisse.annule_par",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "caisse",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "caisse_statut",
+        "values": [
+          "valide",
+          "annule"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "caisse_type",
+        "values": [
+          "recette",
+          "depense",
+          "fourniture"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "id",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": {
+          "type": "always",
+          "name": "caisse_id_seq",
+          "increment": "1",
+          "startWith": "1",
+          "minValue": "1",
+          "maxValue": "2147483647",
+          "cache": 1,
+          "cycle": false
+        },
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "site_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "date",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "type",
+        "type": "caisse_type",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "libelle",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "montant",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "devise",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'CDF'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "saisi_par",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "statut",
+        "type": "caisse_statut",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'valide'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "annule_par",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "motif_annulation",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "annule_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "caisse_site_id_sites_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "site_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "sites",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "RESTRICT",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "caisse_saisi_par_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "saisi_par"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "RESTRICT",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "caisse_annule_par_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "annule_par"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "SET NULL",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "caisse_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "caisse",
+        "name": "caisse_montant_positif",
+        "value": "\"montant\" > 0",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

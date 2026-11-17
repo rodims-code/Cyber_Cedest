@@ -75,3 +75,32 @@ export function canAccessLead(role: Role, type: LeadType) {
 export function allowedLeadTypes(role: Role): LeadType[] | null {
   return role === "gerant" ? null : domains[role];
 }
+
+/** Le gérant et l'opérateur peuvent lire la caisse ; le technicien non. */
+export function canReadCaisse(role: Role): boolean {
+  return role === "gerant" || role === "operateur";
+}
+
+/** Le gérant et l'opérateur peuvent écrire en caisse ; le technicien non. */
+export function canWriteCaisse(role: Role): boolean {
+  return role === "gerant" || role === "operateur";
+}
+
+/**
+ * L'opérateur ne peut annuler que ses propres lignes du jour.
+ * Le gérant peut annuler toute ligne.
+ * Le technicien ne peut rien annuler.
+ */
+export function canCancelCaisse(
+  role: Role,
+  actorId: string,
+  entrySaisiPar: string,
+  entryDate: string,
+  todayIso: string
+): boolean {
+  if (role === "gerant") return true;
+  if (role === "operateur") {
+    return actorId === entrySaisiPar && entryDate === todayIso;
+  }
+  return false;
+}
