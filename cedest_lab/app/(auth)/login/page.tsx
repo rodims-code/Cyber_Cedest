@@ -31,7 +31,7 @@ export default function LoginPage() {
       </div>
       <div className="relative z-10 m-6 hidden overflow-hidden rounded-lg bg-center md:m-10 lg:block">
         <Image
-          src="/images/logo.webp"
+          src="/images/logo.png"
           alt="Logo Cyber Cedest"
           fill
           className="rounded-lg object-contain p-2 md:p-6"

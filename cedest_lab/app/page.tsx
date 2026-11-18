@@ -142,6 +142,7 @@ export default function HomePage() {
       title: "Espace Cyber & Postes Clients",
       category: "Vie au Cyber",
       suggestedPath: "/images/gallery/espace-cyber.webp",
+      imageSrc: "/images/gallery/espace-cyber.webp",
       dimensions: "600 × 450 px",
       description: "L'accueil du public, photocopieurs et ordinateurs en service",
     },
