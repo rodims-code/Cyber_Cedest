@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Image from "next/image"
 import { ImagePlus, Sparkles, Check, Copy } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -58,11 +59,13 @@ export function ImagePlaceholder({
     >
       {hasValidImage ? (
         <>
-          <img
-            src={imageSrc}
-            alt={title}
+          <Image
+            src={imageSrc!}
+            alt={description || title}
+            fill
             onError={() => setImageError(true)}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
           {/* Badge discret sur l'image */}
           <div className="absolute bottom-2.5 left-2.5 z-10">
