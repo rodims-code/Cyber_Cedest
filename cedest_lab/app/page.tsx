@@ -1,4 +1,5 @@
-import React from "react"
+﻿import React from "react"
+import Image from "next/image"
 import Link from "next/link"
 import {
   Wifi,
@@ -47,7 +48,7 @@ export default function HomePage() {
       ],
       image: {
         title: "Photo Atelier Bureautique",
-        path: "/images/services/bureautique.jpg",
+        path: "/images/services/bureautique.webp",
         dimensions: "800 × 500 px",
         description: "Vue des imprimantes, photocopieuses et postes de secrétariat",
       },
@@ -69,7 +70,7 @@ export default function HomePage() {
       ],
       image: {
         title: "Photo Antenne & Équipements MikroTik",
-        path: "/images/services/wifi-mikrotik.jpg",
+        path: "/images/services/wifi-mikrotik.webp",
         dimensions: "800 × 500 px",
         description: "Routeurs MikroTik, câblage réseau et antenne de diffusion",
       },
@@ -91,7 +92,7 @@ export default function HomePage() {
       ],
       image: {
         title: "Photo Installation Panneaux Solaires",
-        path: "/images/services/energie-solaire.jpg",
+        path: "/images/services/energie-solaire.webp",
         dimensions: "800 × 500 px",
         description: "Panneaux posés sur toiture, onduleur mural et parc batteries",
       },
@@ -113,7 +114,7 @@ export default function HomePage() {
       ],
       image: {
         title: "Photo Salle de Formation Informatique",
-        path: "/images/services/formation.jpg",
+        path: "/images/services/formation.webp",
         dimensions: "800 × 500 px",
         description: "Apprenants devant les postes informatiques avec le formateur",
       },
@@ -124,28 +125,31 @@ export default function HomePage() {
     {
       title: "Déploiement Antenne Relais Wi-Fi",
       category: "Réseau Client",
-      suggestedPath: "/images/gallery/antenne-relais.jpg",
+      suggestedPath: "/images/gallery/antenne-relais.webp",
+      imageSrc: "/images/gallery/antenne-relais.webp",
       dimensions: "600 × 450 px",
       description: "Installation chez un client résidentiel ou commercial à Kinshasa",
     },
     {
       title: "Centrale Solaire & Onduleur Hybride",
       category: "Énergie Verte",
-      suggestedPath: "/images/gallery/installation-panneaux.jpg",
+      suggestedPath: "/images/gallery/installation-panneaux.webp",
+      imageSrc: "/images/gallery/installation-panneaux.webp",
       dimensions: "600 × 450 px",
       description: "Montage de toiture et tableau électrique autonome",
     },
     {
       title: "Espace Cyber & Postes Clients",
       category: "Vie au Cyber",
-      suggestedPath: "/images/gallery/espace-cyber.jpg",
+      suggestedPath: "/images/gallery/espace-cyber.webp",
       dimensions: "600 × 450 px",
       description: "L'accueil du public, photocopieurs et ordinateurs en service",
     },
     {
       title: "Session Pratique de Formation",
       category: "Formation Continue",
-      suggestedPath: "/images/gallery/session-formation.jpg",
+      suggestedPath: "/images/gallery/session-formation.webp",
+      imageSrc: "/images/gallery/session-formation.webp",
       dimensions: "600 × 450 px",
       description: "Atelier pratique d'apprentissage sur logiciel bureautique",
     },
@@ -290,9 +294,12 @@ export default function HomePage() {
               {/* Colonne Droite : PHOTO PRINCIPALE (HERO IMAGE) */}
               <div className="lg:col-span-5 flex flex-col">
                 <div className="group relative w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl">
-                  <img
-                    src="/images/hero-cyber-cedest.jpg"
-                    alt="Cyber Cedest - Façade et Équipements à Kinshasa"
+                  <Image
+                    src="/images/hero-cyber-cedest.webp"
+                    alt="Façade du Cyber Cedest et ses équipements à Kinshasa"
+                    width={1600}
+                    height={1068}
+                    priority
                     className="w-full h-[340px] sm:h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
@@ -455,7 +462,7 @@ export default function HomePage() {
                     suggestedPath={item.suggestedPath}
                     dimensions={item.dimensions}
                     description={item.description}
-                    imageSrc={item.suggestedPath}
+                    imageSrc={item.imageSrc}
                     aspectRatio="tall"
                     className="bg-card shadow-xs"
                   />

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import GhostFibers from "@/components/GhostFibers";
 import { GalleryVerticalEndIcon } from "lucide-react";
@@ -29,10 +30,12 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="relative z-10 m-6 hidden overflow-hidden rounded-lg bg-center md:m-10 lg:block">
-        <img
-          src="/images/logo.png"
-          alt=""
-          className="absolute inset-0 h-full w-full rounded-lg object-contain p-2 md:p-6"
+        <Image
+          src="/images/logo.webp"
+          alt="Logo Cyber Cedest"
+          fill
+          className="rounded-lg object-contain p-2 md:p-6"
+          sizes="(max-width: 1024px) 0px, 50vw"
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-export type FormationMode = "presentiel" | "en_ligne" | "hybride"
+﻿export type FormationMode = "presentiel" | "en_ligne" | "hybride"
 
 export interface Formation {
   id: string
@@ -36,7 +36,7 @@ export const FORMATIONS_LIST: Formation[] = [
     prerequisites: "Aucun prérequis nécessaire",
     certificate: true,
     featured: true,
-    image: "/images/services/formation.jpg",
+    image: "/images/services/formation.webp",
     modules: [
       "Prise en main du matériel (clavier, souris, unité centrale, périphériques)",
       "Environnement Windows : fenêtres, dossiers, clés USB et organisation",
@@ -56,7 +56,7 @@ export const FORMATIONS_LIST: Formation[] = [
     level: "Tous niveaux",
     prerequisites: "Notions de base en informatique",
     certificate: true,
-    image: "/images/services/bureautique.jpg",
+    image: "/images/services/bureautique.webp",
     modules: [
       "Saisie rapide, correction orthographique et mise en forme de texte",
       "Création de tableaux, insertion d'images, formes et en-têtes/pieds de page",
@@ -77,7 +77,7 @@ export const FORMATIONS_LIST: Formation[] = [
     prerequisites: "Savoir utiliser un ordinateur",
     certificate: true,
     featured: true,
-    image: "/images/gallery/session-formation.jpg",
+    image: "/images/gallery/session-formation.webp",
     modules: [
       "Structure d'un classeur, cellules, colonnes et formats de données",
       "Formules fondamentales : SOMME, MOYENNE, SI, RECHERCHEV/X",
@@ -98,7 +98,7 @@ export const FORMATIONS_LIST: Formation[] = [
     prerequisites: "Intérêt pour l'électricité ou le bricolage technique",
     certificate: true,
     featured: true,
-    image: "/images/services/energie-solaire.jpg",
+    image: "/images/services/energie-solaire.webp",
     modules: [
       "Principes de base du solaire photovoltaïque & sécurité électrique",
       "Calcul des besoins énergétiques et dimensionnement d'un kit solaire",

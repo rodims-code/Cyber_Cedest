@@ -1,5 +1,6 @@
-"use client"
+﻿"use client"
 
+import Image from "next/image"
 import React, { useState } from "react"
 import Link from "next/link"
 import {
@@ -168,10 +169,12 @@ export default function FormationsPage() {
                     {/* Image d'illustration de la formation */}
                     {formation.image && (
                       <div className="relative h-48 w-full overflow-hidden bg-muted">
-                        <img
+                        <Image
                           src={formation.image}
-                          alt={formation.title}
-                          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                          alt={`Illustration de la formation ${formation.title}`}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 hover:scale-105"
                         />
                         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                           <Badge
