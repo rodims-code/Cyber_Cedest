@@ -193,6 +193,7 @@ export function NotificationDetail({
                           type="button"
                           variant="outline"
                           className="h-11 w-full justify-between"
+                          nativeButton={false}
                           render={
                             <a
                               href={whatsappHref}
