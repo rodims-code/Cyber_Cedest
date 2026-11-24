@@ -1,12 +1,5 @@
 /**
  * Catalogue des événements de notification.
- *
- * Pour chaque type, décrit : libellé, priorité, destinataires et les textes
- * français de titre/corps. La matrice README est la seule source de vérité :
- * personne ne reçoit une notification sur un domaine auquel il n'a pas accès.
- *
- * Ce module n'importe ni la base ni Next.js : le routage (rôles, sites) se
- * fait dans `resolve.ts` / `notify.ts`.
  */
 import type { Role } from "@/lib/permissions";
 import type { LeadType } from "@/lib/permissions";
@@ -21,6 +14,7 @@ export type RecipientRule =
 
 export type NotificationData = {
   leadId?: number;
+  leadNumero?: number;
   leadType?: LeadType;
   leadNom?: string;
   leadTelephone?: string;
@@ -54,16 +48,16 @@ export const LEAD_TYPE_SHORT_LABELS: Record<LeadType, string> = {
   formation: "Formation",
   wifi: "Wi-Fi",
   solaire: "Solaire",
-  bureautique: "Bureautique",
-  autre: "Contact",
+  contact: "Contact",
 };
 
 export const NOTIFICATION_CATALOG: Record<NotificationType, CatalogEntry> = {
   demande_bureautique: {
-    label: "Demande bureautique ou contact",
+    label: "Demande de contact",
     priorite: "normale",
     recipients: "gerant_operateur",
-    titre: () => "Nouvelle demande bureautique",
+    titre: (data) =>
+      `Nouvelle demande ${data.leadNumero ? `CED-${String(data.leadNumero).padStart(4, "0")}` : ""} : Contact – ${data.leadNom ?? "Client"}`,
     corps: (data) =>
       `${data.leadNom ?? "Client"} · ${data.leadTelephone ?? ""}`.trim(),
     href: (data, role) =>
@@ -73,10 +67,11 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, CatalogEntry> = {
     label: "Demande Wi-Fi ou solaire",
     priorite: "normale",
     recipients: "gerant_technicien",
-    titre: (data) =>
-      data.leadType === "solaire"
-        ? "Nouvelle demande solaire"
-        : "Nouvelle demande Wi-Fi",
+    titre: (data) => {
+      const srv = data.leadType === "solaire" ? "Solaire" : "Wi-Fi";
+      const num = data.leadNumero ? `CED-${String(data.leadNumero).padStart(4, "0")}` : "";
+      return `Nouvelle demande ${num} : ${srv} – ${data.leadNom ?? "Client"}`;
+    },
     corps: (data) =>
       `${data.leadNom ?? "Client"} · ${data.leadTelephone ?? ""}`.trim(),
     href: (data, role) =>
@@ -86,7 +81,8 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, CatalogEntry> = {
     label: "Demande de formation",
     priorite: "normale",
     recipients: "gerant",
-    titre: () => "Nouvelle demande de formation",
+    titre: (data) =>
+      `Nouvelle demande ${data.leadNumero ? `CED-${String(data.leadNumero).padStart(4, "0")}` : ""} : Formation – ${data.leadNom ?? "Client"}`,
     corps: (data) =>
       `${data.leadNom ?? "Client"} · ${data.leadTelephone ?? ""}`.trim(),
     href: (data, role) =>

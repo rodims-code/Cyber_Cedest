@@ -28,6 +28,8 @@ import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { WhatsAppButton } from "@/components/shared/whatsapp-button"
+import { ServiceCardActions } from "@/components/site/service-card-actions"
 
 export default function HomePage() {
   const services = [
@@ -161,7 +163,7 @@ export default function HomePage() {
       {/* Barre de navigation avec bouton Login */}
       <SiteNavbar />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-16">
         {/* ========================================================================= */}
         {/* BANNIÈRE D'INFORMATION POUR LES IMAGES (MISE EN ÉVIDENCE POUR LE CLIENT) */}
         {/* ========================================================================= */}
@@ -240,18 +242,16 @@ export default function HomePage() {
                     <ArrowRight className="size-4" />
                   </a>
 
-                  <a
-                    href="https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20un%20renseignement"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <WhatsAppButton
+                    bouton="entete"
+                    message="Bonjour Cyber Cedest, je souhaite un renseignement."
                     className={cn(
                       buttonVariants({ variant: "outline", size: "lg" }),
                       "gap-2 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400"
                     )}
                   >
-                    <MessageCircle className="size-4" />
                     <span>WhatsApp Rapide</span>
-                  </a>
+                  </WhatsAppButton>
 
                   {/* Bouton Login bien mis en évidence dans le Hero */}
                   <Link
@@ -391,32 +391,10 @@ export default function HomePage() {
                     </CardContent>
 
                     <CardFooter className="pt-4 border-t border-border/60 flex items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <a
-                          href={`https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20un%20devis%20ou%20des%20informations%20concernant%20le%20service%20:%20${encodeURIComponent(
-                            service.title
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs gap-1.5")}
-                        >
-                          <MessageCircle className="size-3.5 text-emerald-600" />
-                          <span>Demander un devis</span>
-                        </a>
-
-                        {service.id === "formation" && (
-                          <Link
-                            href="/formations"
-                            className={cn(
-                              buttonVariants({ variant: "default", size: "sm" }),
-                              "text-xs gap-1.5 font-medium shadow-xs"
-                            )}
-                          >
-                            <GraduationCap className="size-3.5" />
-                            <span>Voir le programme complet</span>
-                          </Link>
-                        )}
-                      </div>
+                      <ServiceCardActions
+                        serviceId={service.id as "bureautique" | "wifi" | "solaire" | "formation"}
+                        serviceTitle={service.title}
+                      />
 
                       <span className="text-[11px] text-muted-foreground font-mono hidden sm:inline-block">
                         Kinshasa • RDC
@@ -558,18 +536,16 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-                <a
-                  href="https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20obtenir%20des%20informations"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppButton
+                  bouton="autre"
+                  message="Bonjour Cyber Cedest, je souhaite obtenir des informations."
                   className={cn(
                     buttonVariants({ variant: "default", size: "lg" }),
                     "gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                   )}
                 >
-                  <MessageCircle className="size-5" />
                   <span>Écrire sur WhatsApp</span>
-                </a>
+                </WhatsAppButton>
 
                 {/* Bouton de Login également présent dans le CTA de bas de page */}
                 <Link

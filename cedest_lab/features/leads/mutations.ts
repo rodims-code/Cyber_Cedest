@@ -1,17 +1,10 @@
-/**
- * Mutations leads partagées entre les Server Actions de `features/leads`
- * et les actions rapides du centre de notifications.
- *
- * Chaque fonction revérifie le droit `canAccessLead` côté serveur :
- * aucune mutation n'existe sans contrôle de rôle.
- */
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/app/db";
 import { leadNotes, leads } from "@/app/db/schema";
 import { canAccessLead, type LeadType, type Role } from "@/lib/permissions";
 
-export type LeadStatus = "nouveau" | "en_cours" | "converti" | "annule";
+export type LeadStatus = "nouveau" | "contacte" | "en_cours" | "termine" | "annule";
 
 /** Change le statut d'un lead si l'acteur y a accès. Retourne false sinon. */
 export async function changeLeadStatusForUser(

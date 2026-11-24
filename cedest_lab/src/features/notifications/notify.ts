@@ -1,9 +1,5 @@
 /**
  * Point d'entrée unique des notifications : `notify(event)`.
- *
- * Les appels sont volontairement non bloquants côté appelant : un échec de
- * notification ne doit jamais faire échouer l'action métier déclencheuse.
- * Utiliser `notifySafely` pour ce cas (try/catch inclus).
  */
 import { db } from "@/app/db";
 import { notifications } from "@/app/db/schema";
@@ -60,9 +56,10 @@ export async function notifySafely(event: NotifyEvent): Promise<void> {
   }
 }
 
-/** Déclencheur « nouvelle demande » (seul module métier branché pour l'instant). */
+/** Déclencheur « nouvelle demande » */
 export async function notifyLeadCreated(lead: {
   id: number;
+  numero?: number;
   type: LeadType;
   nom: string;
   telephone: string;
@@ -72,6 +69,7 @@ export async function notifyLeadCreated(lead: {
     type: leadNotificationType(lead.type),
     data: {
       leadId: lead.id,
+      leadNumero: lead.numero,
       leadType: lead.type,
       leadNom: lead.nom,
       leadTelephone: lead.telephone,

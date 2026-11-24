@@ -1,8 +1,8 @@
 export type Role = "gerant" | "operateur" | "technicien";
-export type LeadType = "formation" | "wifi" | "solaire" | "bureautique" | "autre";
+export type LeadType = "formation" | "wifi" | "solaire" | "contact";
 
 const domains: Record<Exclude<Role, "gerant">, LeadType[]> = {
-  operateur: ["bureautique", "formation", "autre"],
+  operateur: ["contact"],
   technicien: ["wifi", "solaire"],
 };
 

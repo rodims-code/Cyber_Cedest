@@ -1,71 +1,89 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/app/db";
 import { leads } from "@/app/db/schema";
 import { requireRole } from "@/lib/session";
-import { leadNoteSchema, leadSchema, leadStatusSchema } from "./schemas";
+import {
+  createLeadSchema,
+  leadNoteSchema,
+  leadStatusSchema,
+} from "./schemas";
 import {
   addLeadNoteForUser,
   changeLeadStatusForUser,
 } from "./mutations";
+import { countLeadsInLastHourByIpHash } from "./queries";
 import { notifyLeadCreated } from "@/src/features/notifications/notify";
-
-const attemptsByIp = new Map<string, { count: number; resetAt: number }>();
-
-async function enforceLeadRateLimit() {
-  const requestHeaders = await headers();
-  const forwardedFor = requestHeaders.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";
-  const now = Date.now();
-  const attempt = attemptsByIp.get(ip);
-
-  if (!attempt || attempt.resetAt <= now) {
-    attemptsByIp.set(ip, { count: 1, resetAt: now + 10 * 60 * 1_000 });
-    return true;
-  }
-
-  if (attempt.count >= 5) return false;
-  attempt.count += 1;
-  return true;
-}
+import { getClientIpHmac } from "@/src/lib/ip-hash";
 
 export async function createLead(input: unknown) {
-  const parsed = leadSchema.safeParse(input);
-  if (!parsed.success || parsed.data.website) {
-    const errorMsg = !parsed.success
-      ? parsed.error.issues[0]?.message ?? "Demande invalide."
-      : "Demande invalide.";
+  const parsed = createLeadSchema.safeParse(input);
+  if (!parsed.success) {
+    const errorMsg = parsed.error.issues[0]?.message ?? "Demande invalide.";
     return { ok: false, error: errorMsg };
   }
 
-  if (!(await enforceLeadRateLimit())) {
-    return { ok: false, error: "Trop de demandes envoyées. Réessayez dans quelques minutes." };
+  // Champ piège rempli = faux succès sans rien enregistrer
+  if (parsed.data.website) {
+    return { ok: true, numero: "CED-0000" };
   }
 
-  const { details, website, ...data } = parsed.data;
-  void website;
+  // Calcul HMAC-SHA256 de l'IP
+  const ipHash = await getClientIpHmac();
 
-  const [lead] = await db
+  // Limite : 5 demandes par heure et par ip_hash comptées en base
+  const countInHour = await countLeadsInLastHourByIpHash(ipHash);
+  if (countInHour >= 5) {
+    return {
+      ok: false,
+      error: "Trop de demandes. Réessayez plus tard ou écrivez-nous sur WhatsApp.",
+    };
+  }
+
+  const {
+    nom,
+    telephone,
+    type,
+    message,
+    site,
+    website: _w,
+    ...specificDetails
+  } = parsed.data;
+
+  const detailsPayload: Record<string, unknown> = {
+    ...specificDetails,
+  };
+  if (message) {
+    detailsPayload.message = message;
+  }
+
+  const [inserted] = await db
     .insert(leads)
     .values({
-      ...data,
-      email: data.email || null,
-      site: data.site || null,
-      details: details ? { message: details } : null,
+      type,
+      nom,
+      telephone,
+      site: site || null,
+      status: "nouveau",
+      source: "formulaire",
+      ipHash,
+      details: Object.keys(detailsPayload).length > 0 ? detailsPayload : null,
     })
-    .returning({ id: leads.id });
+    .returning({ id: leads.id, numero: leads.numero });
+
+  const numFormat = `CED-${String(inserted.numero).padStart(4, "0")}`;
 
   await notifyLeadCreated({
-    id: lead.id,
-    type: data.type,
-    nom: data.nom,
-    telephone: data.telephone,
-    site: data.site || null,
+    id: inserted.id,
+    numero: inserted.numero,
+    type,
+    nom,
+    telephone,
+    site: site || null,
   });
 
-  return { ok: true, id: lead.id };
+  return { ok: true, numero: numFormat };
 }
 
 export async function updateLeadStatus(formData: FormData) {

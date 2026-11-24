@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Wifi, LogIn, MapPin, Phone, MessageCircle, Mail } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { WhatsAppButton } from "@/components/shared/whatsapp-button"
 
 export function SiteFooter() {
   const [currentYear, setCurrentYear] = useState<number | null>(null)
@@ -80,15 +81,13 @@ export function SiteFooter() {
                 <span>Kinshasa, République Démocratique du Congo</span>
               </li>
               <li className="flex items-center gap-2">
-                <MessageCircle className="size-4 text-emerald-600 shrink-0" />
-                <a
-                  href="https://wa.me/?text=Bonjour%20Cyber%20Cedest"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline text-emerald-600 dark:text-emerald-400 font-medium"
+                <WhatsAppButton
+                  bouton="autre"
+                  message="Bonjour Cyber Cedest"
+                  className="inline-flex items-center gap-1.5 hover:underline text-emerald-600 dark:text-emerald-400 font-medium"
                 >
-                  WhatsApp direct client
-                </a>
+                  <span>WhatsApp direct client</span>
+                </WhatsAppButton>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="size-4 text-primary shrink-0" />

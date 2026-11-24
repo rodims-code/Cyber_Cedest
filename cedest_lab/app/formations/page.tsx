@@ -28,6 +28,8 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { WhatsAppButton } from "@/components/shared/whatsapp-button"
+import { FormationCardActions } from "@/components/site/formation-card-actions"
 import { FORMATIONS_LIST, Formation, FormationMode } from "@/lib/formations-data"
 
 export default function FormationsPage() {
@@ -46,7 +48,7 @@ export default function FormationsPage() {
       {/* Navigation principale avec bouton Login */}
       <SiteNavbar />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-16">
         {/* ========================================================================= */}
         {/* EN-TÊTE DE LA PAGE FORMATIONS */}
         {/* ========================================================================= */}
@@ -256,18 +258,11 @@ export default function FormationsPage() {
                         <span>Sessions régulières & places limitées</span>
                       </div>
 
-                      <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(
-                          buttonVariants({ variant: "default", size: "sm" }),
-                          "gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs"
-                        )}
-                      >
-                        <MessageCircle className="size-4" />
-                        <span>S'inscrire sur WhatsApp</span>
-                      </a>
+                      <FormationCardActions
+                        formationId={formation.id}
+                        formationTitle={formation.title}
+                        activeFilter={selectedFilter}
+                      />
                     </CardFooter>
                   </Card>
                 )
@@ -355,18 +350,16 @@ export default function FormationsPage() {
                 Discutez avec notre équipe pédagogique pour évaluer votre niveau et choisir le module le plus adapté à vos objectifs.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <a
-                  href="https://wa.me/?text=Bonjour%20Cyber%20Cedest,%20je%20souhaite%20un%20conseil%20pour%20choisir%20une%20formation"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppButton
+                  bouton="autre"
+                  message="Bonjour Cyber Cedest, je souhaite un conseil pour choisir une formation."
                   className={cn(
                     buttonVariants({ variant: "default", size: "lg" }),
                     "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
                   )}
                 >
-                  <MessageCircle className="size-5" />
                   <span>Poser une question sur WhatsApp</span>
-                </a>
+                </WhatsAppButton>
 
                 <Link
                   href="/"
