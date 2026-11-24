@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { MAX_SITES } from "@/config/site";
 import { getSelectableSites } from "@/lib/current-site";
+import { getNewLeadsCountForRole } from "@/features/leads/queries";
 import { readEffectsCookie } from "@/src/lib/display-preferences";
 import { DashboardEffectsShell } from "@/components/DashboardEffectsShell";
 
@@ -32,6 +33,7 @@ export default async function DashboardLayout({
   const effectiveRole = role;
   const siteCount = sites.length - (canSelectAll ? 1 : 0);
   const canAddSite = role === "gerant" && siteCount < MAX_SITES;
+  const newLeadsCount = await getNewLeadsCountForRole(role);
 
   return (
     <SidebarProvider
@@ -52,6 +54,7 @@ export default async function DashboardLayout({
           canAddSite={canAddSite}
           siteCount={siteCount}
           maxSites={MAX_SITES}
+          newLeadsCount={newLeadsCount}
         />
         <SidebarInset className="z-10 !bg-background/45 backdrop-blur-2xl">
           <SiteHeader

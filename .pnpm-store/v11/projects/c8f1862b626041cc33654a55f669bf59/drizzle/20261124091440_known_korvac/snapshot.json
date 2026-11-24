@@ -1,0 +1,560 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "34cf959b-82ee-400c-9905-2bfb9c44774b",
+  "prevIds": [
+    "f15a8442-d95c-4714-842f-c7a8bbc1bfdd"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "whatsapp_bouton"
+      ],
+      "writes": [
+        "s|enum|public.whatsapp_bouton",
+        "n|enum|public.whatsapp_bouton",
+        "e|enum|public.whatsapp_bouton",
+        "n|type|public.whatsapp_bouton"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "whatsapp_clicks"
+      ],
+      "writes": [
+        "s|tbl|public.whatsapp_clicks",
+        "n|tbl|public.whatsapp_clicks",
+        "e|tbl|public.whatsapp_clicks",
+        "n|rel|public.whatsapp_clicks",
+        "n|type|public.whatsapp_clicks",
+        "n|rel|public.whatsapp_clicks_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.whatsapp_bouton"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "leads",
+        "numero"
+      ],
+      "writes": [
+        "s|col|public.leads.numero",
+        "n|col|public.leads.numero",
+        "e|col|public.leads.numero"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "leads",
+        "source"
+      ],
+      "writes": [
+        "s|col|public.leads.source",
+        "n|col|public.leads.source",
+        "e|col|public.leads.source"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "leads",
+        "ip_hash"
+      ],
+      "writes": [
+        "s|col|public.leads.ip_hash",
+        "n|col|public.leads.ip_hash",
+        "e|col|public.leads.ip_hash"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "recreate_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "lead_status"
+      ],
+      "writes": [
+        "s|enum|public.lead_status",
+        "n|enum|public.lead_status",
+        "e|enum|public.lead_status",
+        "n|type|public.lead_status",
+        "s|colprop|public.leads.status.type",
+        "s|colprop|public.leads.status.default"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|tbl|public.leads",
+        "n|sch|public",
+        "n|col|public.leads.status"
+      ],
+      "sqlHash": "3ef3e930ba1d8609"
+    },
+    {
+      "statementType": "recreate_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "lead_type"
+      ],
+      "writes": [
+        "s|enum|public.lead_type",
+        "n|enum|public.lead_type",
+        "e|enum|public.lead_type",
+        "n|type|public.lead_type",
+        "s|colprop|public.leads.type.type",
+        "s|colprop|public.leads.type.default"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|tbl|public.leads",
+        "n|sch|public",
+        "n|col|public.leads.type"
+      ],
+      "sqlHash": "fc4b5e75fe253ddf"
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "leads",
+        "leads_type_status_created_idx"
+      ],
+      "writes": [
+        "s|idx|public.leads_type_status_created_idx",
+        "n|idx|public.leads_type_status_created_idx",
+        "e|idx|public.leads_type_status_created_idx",
+        "n|rel|public.leads_type_status_created_idx"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public",
+        "n|col|public.leads.type",
+        "n|col|public.leads.status",
+        "n|col|public.leads.created_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "leads",
+        "leads_telephone_idx"
+      ],
+      "writes": [
+        "s|idx|public.leads_telephone_idx",
+        "n|idx|public.leads_telephone_idx",
+        "e|idx|public.leads_telephone_idx",
+        "n|rel|public.leads_telephone_idx"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public",
+        "n|col|public.leads.telephone"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "leads",
+        "leads_ip_hash_created_idx"
+      ],
+      "writes": [
+        "s|idx|public.leads_ip_hash_created_idx",
+        "n|idx|public.leads_ip_hash_created_idx",
+        "e|idx|public.leads_ip_hash_created_idx",
+        "n|rel|public.leads_ip_hash_created_idx"
+      ],
+      "reads": [
+        "n|tbl|public.leads",
+        "n|sch|public",
+        "n|col|public.leads.ip_hash",
+        "n|col|public.leads.created_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "whatsapp_clicks",
+        "whatsapp_clicks_created_idx"
+      ],
+      "writes": [
+        "s|idx|public.whatsapp_clicks_created_idx",
+        "n|idx|public.whatsapp_clicks_created_idx",
+        "e|idx|public.whatsapp_clicks_created_idx",
+        "n|rel|public.whatsapp_clicks_created_idx"
+      ],
+      "reads": [
+        "n|tbl|public.whatsapp_clicks",
+        "n|sch|public",
+        "n|col|public.whatsapp_clicks.created_at"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "whatsapp_clicks",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "whatsapp_bouton",
+        "values": [
+          "entete",
+          "flottant",
+          "carte-bureautique",
+          "carte-wifi",
+          "carte-solaire",
+          "carte-formation",
+          "autre"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "numero",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": {
+          "type": "always",
+          "name": "leads_numero_seq",
+          "increment": "1",
+          "startWith": "1",
+          "minValue": "1",
+          "maxValue": "2147483647",
+          "cache": 1,
+          "cycle": false
+        },
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "source",
+        "type": "varchar(50)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'formulaire'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "ip_hash",
+        "type": "varchar(64)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "id",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": {
+          "type": "always",
+          "name": "whatsapp_clicks_id_seq",
+          "increment": "1",
+          "startWith": "1",
+          "minValue": "1",
+          "maxValue": "2147483647",
+          "cache": 1,
+          "cycle": false
+        },
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "page",
+        "type": "varchar(255)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "bouton",
+        "type": "whatsapp_bouton",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "ip_hash",
+        "type": "varchar(64)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "leads_type_status_created_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "type",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "status",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "created_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "leads_telephone_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "telephone",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "leads",
+        "name": "leads_ip_hash_created_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "ip_hash",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "created_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "whatsapp_clicks_created_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "created_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_clicks",
+        "name": "whatsapp_clicks_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "alter",
+      "key": "enums\u0000[\"public\",\"lead_status\"]",
+      "set": {
+        "values": [
+          "nouveau",
+          "contacte",
+          "en_cours",
+          "termine",
+          "annule"
+        ]
+      }
+    },
+    {
+      "op": "alter",
+      "key": "enums\u0000[\"public\",\"lead_type\"]",
+      "set": {
+        "values": [
+          "formation",
+          "wifi",
+          "solaire",
+          "contact"
+        ]
+      }
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 import { db } from "@/app/db";
 import { leads } from "@/app/db/schema";
 import { requireRole } from "@/lib/session";
@@ -12,6 +14,7 @@ import {
 import {
   addLeadNoteForUser,
   changeLeadStatusForUser,
+  deleteLeadForUser,
 } from "./mutations";
 import { countLeadsInLastHourByIpHash } from "./queries";
 import { notifyLeadCreated } from "@/src/features/notifications/notify";
@@ -107,4 +110,18 @@ export async function addLeadNote(formData: FormData) {
     session.role
   );
   revalidatePath("/dashboard", "layout");
+}
+
+const deleteLeadSchema = z.object({
+  leadId: z.coerce.number().int().positive(),
+});
+
+export async function deleteLeadAction(formData: FormData) {
+  const parsed = deleteLeadSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return;
+
+  const { role } = await requireRole(["gerant"]);
+  await deleteLeadForUser(parsed.data.leadId, role);
+  revalidatePath("/dashboard", "layout");
+  redirect("/dashboard/gerant/demandes");
 }

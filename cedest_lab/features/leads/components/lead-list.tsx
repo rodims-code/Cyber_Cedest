@@ -1,15 +1,16 @@
 import Link from "next/link";
 import {
   Users,
-  Wifi,
-  GraduationCap,
-  Monitor,
-  SunMedium,
   Filter,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -27,18 +28,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { LeadType } from "@/lib/permissions";
-import { getLeadsForRole } from "../queries";
+import { LeadType, Role } from "@/lib/permissions";
+import { getLeadsForRole, GetLeadsOptions } from "../queries";
 
 const labels: Record<string, string> = {
   formation: "Formation",
   wifi: "Wi-Fi",
   solaire: "Solaire",
-  bureautique: "Bureautique",
-  autre: "Contact",
+  contact: "Contact",
   nouveau: "Nouveau",
+  contacte: "Contacté",
   en_cours: "En cours",
-  converti: "Terminé",
+  termine: "Terminé",
   annule: "Annulé",
 };
 
@@ -47,8 +48,9 @@ const statusVariants: Record<
   "default" | "secondary" | "destructive" | "outline"
 > = {
   nouveau: "default",
-  en_cours: "secondary",
-  converti: "outline",
+  contacte: "secondary",
+  en_cours: "outline",
+  termine: "secondary",
   annule: "destructive",
 };
 
@@ -56,19 +58,40 @@ export async function LeadList({
   role,
   filters,
 }: {
-  role: "gerant" | "operateur" | "technicien";
-  filters: { type?: string; status?: string };
+  role: Role;
+  filters: GetLeadsOptions;
 }) {
-  const leads = await getLeadsForRole(role, filters);
+  const result = await getLeadsForRole(role, filters);
+  const { leads, total, page, totalPages } = result;
 
   const basePath = `/dashboard/${role}/demandes`;
 
-  const types: LeadType[] =
+  const availableTypes: LeadType[] =
     role === "gerant"
-      ? ["formation", "wifi", "solaire", "bureautique", "autre"]
+      ? ["formation", "wifi", "solaire", "contact"]
       : role === "operateur"
-      ? ["bureautique", "formation", "autre"]
+      ? ["contact"]
       : ["wifi", "solaire"];
+
+  const buildUrl = (newParams: Record<string, string | number | undefined>) => {
+    const p = new URLSearchParams();
+    if (filters.type) p.set("type", filters.type);
+    if (filters.status) p.set("status", filters.status);
+    if (filters.search) p.set("search", filters.search);
+    if (filters.page && filters.page > 1) p.set("page", String(filters.page));
+
+    for (const [k, v] of Object.entries(newParams)) {
+      if (v === undefined || v === "" || (k === "page" && v === 1)) {
+        p.delete(k);
+      } else {
+        p.set(k, String(v));
+      }
+    }
+    const q = p.toString();
+    return q ? `${basePath}?${q}` : basePath;
+  };
+
+  const now = Date.now();
 
   return (
     <section className="space-y-6">
@@ -78,58 +101,108 @@ export async function LeadList({
           <h1 className="text-3xl font-bold tracking-tight">
             Demandes clients
           </h1>
-
-          <p className="text-muted-foreground">
-            Consultez et gérez les demandes de votre département.
+          <p className="text-muted-foreground text-sm">
+            Consultez et traitez les demandes reçues pour votre rôle.
           </p>
         </div>
 
-        <Badge className="px-4 py-2 text-sm">
-          {leads.length} demande{leads.length > 1 ? "s" : ""}
+        <Badge className="px-4 py-2 text-sm w-fit">
+          {total} demande{total > 1 ? "s" : ""}
         </Badge>
       </div>
 
-      {/* Filtres */}
+      {/* Barre de filtres et recherche */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Filter className="h-4 w-4" />
-            Filtres
+            <Filter className="size-4" />
+            Filtres & Recherche
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex flex-wrap gap-2">
-          <Link href={basePath}>
-            <Button
-              size="sm"
-              variant={!filters.type && !filters.status ? "default" : "outline"}
-            >
-              Toutes
+        <CardContent className="space-y-4">
+          {/* Recherche */}
+          <form method="GET" action={basePath} className="flex gap-2 max-w-md">
+            {filters.type && <input type="hidden" name="type" value={filters.type} />}
+            {filters.status && <input type="hidden" name="status" value={filters.status} />}
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+              <Input
+                name="search"
+                defaultValue={filters.search ?? ""}
+                placeholder="Rechercher par nom, tél ou CED-..."
+                className="pl-9 text-xs"
+              />
+            </div>
+            <Button size="sm" type="submit" variant="secondary" className="text-xs">
+              Filtrer
             </Button>
-          </Link>
+          </form>
 
-          {types.map((type) => (
-            <Link
-              key={type}
-              href={`${basePath}?type=${type}`}
-            >
+          {/* Filtres Type */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground mr-1">
+              Service :
+            </span>
+            <Link href={buildUrl({ type: undefined, page: 1 })}>
               <Button
                 size="sm"
-                variant={filters.type === type ? "default" : "outline"}
+                variant={!filters.type ? "default" : "outline"}
+                className="text-xs h-7"
               >
-                {labels[type]}
+                Tous
               </Button>
             </Link>
-          ))}
+
+            {availableTypes.map((t) => (
+              <Link key={t} href={buildUrl({ type: t, page: 1 })}>
+                <Button
+                  size="sm"
+                  variant={filters.type === t ? "default" : "outline"}
+                  className="text-xs h-7"
+                >
+                  {labels[t]}
+                </Button>
+              </Link>
+            ))}
+          </div>
+
+          {/* Filtres Statut */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground mr-1">
+              Statut :
+            </span>
+            <Link href={buildUrl({ status: undefined, page: 1 })}>
+              <Button
+                size="sm"
+                variant={!filters.status ? "default" : "outline"}
+                className="text-xs h-7"
+              >
+                Tous
+              </Button>
+            </Link>
+
+            {["nouveau", "contacte", "en_cours", "termine", "annule"].map((st) => (
+              <Link key={st} href={buildUrl({ status: st, page: 1 })}>
+                <Button
+                  size="sm"
+                  variant={filters.status === st ? "default" : "outline"}
+                  className="text-xs h-7"
+                >
+                  {labels[st]}
+                </Button>
+              </Link>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Tableau */}
+      {/* Tableau des demandes */}
       <Card>
         <CardHeader>
           <CardTitle>Liste des demandes</CardTitle>
           <CardDescription>
-            Dernières demandes soumises par les clients.
+            Demandes triées de la plus récente à la plus ancienne.
           </CardDescription>
         </CardHeader>
 
@@ -137,6 +210,7 @@ export async function LeadList({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Réf.</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Service</TableHead>
                 <TableHead>Statut</TableHead>
@@ -145,62 +219,111 @@ export async function LeadList({
             </TableHeader>
 
             <TableBody>
-              {leads.map((lead) => (
-                <TableRow
-                  key={lead.id}
-                  className="cursor-pointer transition-colors hover:bg-muted/50"
-                >
-                  <TableCell>
-                    <Link
-                      href={`${basePath}/${lead.id}`}
-                      className="font-medium hover:text-primary"
-                    >
-                      {lead.nom}
-                    </Link>
+              {leads.map((lead) => {
+                const numStr = `CED-${String(lead.numero ?? lead.id).padStart(4, "0")}`;
+                const ageHours = Math.floor(
+                  (now - new Date(lead.createdAt).getTime()) / (1000 * 60 * 60)
+                );
+                const isOverdue = lead.status === "nouveau" && ageHours >= 24;
 
-                    <p className="text-xs text-muted-foreground">
-                      {lead.telephone}
-                    </p>
-                  </TableCell>
+                return (
+                  <TableRow
+                    key={lead.id}
+                    className="cursor-pointer transition-colors hover:bg-muted/50"
+                  >
+                    <TableCell className="font-mono text-xs font-bold text-primary">
+                      <Link href={`${basePath}/${lead.id}`}>
+                        {numStr}
+                      </Link>
+                    </TableCell>
 
-                  <TableCell>
-                    <Badge variant="outline">
-                      {labels[lead.type]}
-                    </Badge>
-                  </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`${basePath}/${lead.id}`}
+                        className="font-medium hover:underline block"
+                      >
+                        {lead.nom}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {lead.telephone}
+                      </span>
+                    </TableCell>
 
-                  <TableCell>
-                    <Badge variant={statusVariants[lead.status]}>
-                      {labels[lead.status]}
-                    </Badge>
-                  </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {labels[lead.type] ?? lead.type}
+                      </Badge>
+                    </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {lead.createdAt.toLocaleDateString("fr-FR")}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <div className="flex flex-col gap-1 items-start">
+                        <Badge variant={statusVariants[lead.status] ?? "outline"}>
+                          {labels[lead.status] ?? lead.status}
+                        </Badge>
+                        {isOverdue && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                            <Clock className="size-3" />
+                            <span>En attente depuis {ageHours} h</span>
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(lead.createdAt).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
 
               {leads.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="py-16 text-center"
-                  >
-                    <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-
-                    <h3 className="font-medium">
-                      Aucune demande trouvée
-                    </h3>
-
-                    <p className="text-sm text-muted-foreground">
-                      Essayez de modifier les filtres appliqués.
+                  <TableCell colSpan={5} className="py-12 text-center">
+                    <Users className="mx-auto mb-2 size-8 text-muted-foreground" />
+                    <h3 className="text-sm font-medium">Aucune demande trouvée</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Modifiez les filtres de recherche ou réinitialisez la sélection.
                     </p>
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
+              <span>
+                Page {page} sur {totalPages} ({total} résultats)
+              </span>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={buildUrl({ page: Math.max(1, page - 1) })}
+                  className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                >
+                  <Button size="sm" variant="outline" disabled={page <= 1} className="h-7 text-xs">
+                    <ChevronLeft className="size-3.5 mr-1" />
+                    Précédent
+                  </Button>
+                </Link>
+                <Link
+                  href={buildUrl({ page: Math.min(totalPages, page + 1) })}
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                >
+                  <Button size="sm" variant="outline" disabled={page >= totalPages} className="h-7 text-xs">
+                    Suivant
+                    <ChevronRight className="size-3.5 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </section>

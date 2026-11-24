@@ -1,0 +1,293 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "85731b64-b614-454a-ad4f-82b5f2f01a9e",
+  "prevIds": [
+    "49c7cb1c-43c9-4ddf-ab33-9392456b9199"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sites"
+      ],
+      "writes": [
+        "s|tbl|public.sites",
+        "n|tbl|public.sites",
+        "e|tbl|public.sites",
+        "n|rel|public.sites",
+        "n|type|public.sites",
+        "n|rel|public.sites_pkey",
+        "n|rel|public.sites_nom_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_sites"
+      ],
+      "writes": [
+        "s|tbl|public.user_sites",
+        "n|tbl|public.user_sites",
+        "e|tbl|public.user_sites",
+        "n|rel|public.user_sites",
+        "n|type|public.user_sites",
+        "n|rel|public.user_sites_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_sites"
+      ],
+      "writes": [
+        "s|fk|public.user_sites.user_sites_user_id_user_id_fkey",
+        "n|fk|public.user_sites.user_sites_user_id_user_id_fkey",
+        "e|fk|public.user_sites.user_sites_user_id_user_id_fkey",
+        "n|con|public.user_sites.user_sites_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.user_sites",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.user_sites.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_sites"
+      ],
+      "writes": [
+        "s|fk|public.user_sites.user_sites_site_id_sites_id_fkey",
+        "n|fk|public.user_sites.user_sites_site_id_sites_id_fkey",
+        "e|fk|public.user_sites.user_sites_site_id_sites_id_fkey",
+        "n|con|public.user_sites.user_sites_site_id_sites_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.user_sites",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.user_sites.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "sites",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "user_sites",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "nom",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "actif",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_sites",
+        "name": "user_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_sites",
+        "name": "site_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_sites",
+        "name": "user_sites_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_sites",
+        "name": "user_sites_site_id_sites_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "site_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "sites",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_sites",
+        "name": "user_sites_pkey",
+        "columns": [
+          "user_id",
+          "site_id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "sites_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "sites",
+        "name": "sites_nom_key",
+        "nameExplicit": false,
+        "columns": [
+          "nom"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

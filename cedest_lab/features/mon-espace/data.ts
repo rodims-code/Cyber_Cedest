@@ -54,7 +54,7 @@ export async function getMonEspace(
   const days = getWorkWeekDays(weekStartIso);
   const todayIndex = getWeekdayIndex(todayIso);
 
-  const [personalShifts, leads, openPointage, hoursSummary, latestPointages] =
+  const [personalShifts, leadsResult, openPointage, hoursSummary, latestPointages] =
     await Promise.all([
       getPersonalWeekShifts(userId, weekStartIso),
       getLeadsForRole(role),
@@ -111,7 +111,7 @@ export async function getMonEspace(
     monthHours: hoursSummary.monthHours,
     pending: {
       heuresAValider: 0,
-      nouvellesDemandes: leads.filter((lead) => lead.status === "nouveau")
+      nouvellesDemandes: leadsResult.leads.filter((lead) => lead.status === "nouveau")
         .length,
       caisseManquante: [],
     },

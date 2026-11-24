@@ -53,3 +53,16 @@ export async function addLeadNoteForUser(
 
   return true;
 }
+
+/** Supprime un lead (Gérant uniquement). */
+export async function deleteLeadForUser(
+  leadId: number,
+  actorRole: Role
+): Promise<boolean> {
+  if (actorRole !== "gerant") {
+    return false;
+  }
+
+  await db.delete(leads).where(eq(leads.id, leadId));
+  return true;
+}

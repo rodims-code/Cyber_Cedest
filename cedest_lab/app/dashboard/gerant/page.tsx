@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { requireRole } from "@/lib/session";
 import { getDashboardStats } from "@/features/dashboard/queries";
 import { NoSiteAssigned } from "@/features/sites/components/no-site-assigned";
+import { WhatsAppClicksCard } from "@/features/leads/components/whatsapp-clicks-card";
 
 export const dynamic = "force-dynamic";
 
@@ -247,6 +248,8 @@ export default async function GerantOverviewPage() {
           </CardContent>
         </Card>
       </div>
+
+      <WhatsAppClicksCard />
     </section>
   );
 }

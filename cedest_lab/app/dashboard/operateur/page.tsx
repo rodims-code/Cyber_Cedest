@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils";
 
 export default async function OperateurHomePage() {
   const { user } = await requireRole(["operateur"]);
-  const allLeads = await getLeadsForRole("operateur");
+  const { leads: allLeads } = await getLeadsForRole("operateur", { pageSize: 100 });
 
   const newCount = allLeads.filter((l) => l.status === "nouveau").length;
   const inProgressCount = allLeads.filter((l) => l.status === "en_cours").length;
-  const doneCount = allLeads.filter((l) => l.status === "converti").length;
+  const doneCount = allLeads.filter((l) => l.status === "termine").length;
 
   return (
     <div className="space-y-6">

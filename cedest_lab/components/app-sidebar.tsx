@@ -36,6 +36,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   canAddSite?: boolean;
   siteCount?: number;
   maxSites?: number;
+  newLeadsCount?: number;
 }
 
 export function AppSidebar({
@@ -45,6 +46,7 @@ export function AppSidebar({
   canAddSite = false,
   siteCount = 0,
   maxSites = 2,
+  newLeadsCount = 0,
   className,
   ...props
 }: AppSidebarProps) {
@@ -80,7 +82,12 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={navigation.main} role={role} basePath={basePath} />
+        <NavMain
+          items={navigation.main}
+          role={role}
+          basePath={basePath}
+          newLeadsCount={newLeadsCount}
+        />
 
         {navigation.exploitation.length > 0 && (
           <SidebarGroup>

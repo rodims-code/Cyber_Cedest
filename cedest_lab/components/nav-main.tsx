@@ -26,6 +26,7 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
+  SidebarMenuBadge,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { NavLink } from "@/lib/navigation";
@@ -35,10 +36,12 @@ export function NavMain({
   items,
   role,
   basePath,
+  newLeadsCount = 0,
 }: {
   items: NavLink[];
   role: Role;
   basePath: string;
+  newLeadsCount?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -129,6 +132,9 @@ export function NavMain({
                 <item.icon />
                 <span>{item.title}</span>
               </SidebarMenuButton>
+              {item.url === `${basePath}/demandes` && newLeadsCount > 0 ? (
+                <SidebarMenuBadge>{newLeadsCount}</SidebarMenuBadge>
+              ) : null}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
